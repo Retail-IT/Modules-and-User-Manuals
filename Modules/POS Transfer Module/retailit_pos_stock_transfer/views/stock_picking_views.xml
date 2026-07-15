@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_retailit_transfer_fields" model="ir.ui.view">
+        <field name="name">stock.picking.form.retailit.pos.transfer</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <!--
+                These fields are written automatically when a transfer or
+                purchase receipt is validated from the POS Receive Stock
+                popup, and are not required at the model level so that
+                non-POS picking workflows are unaffected.
+            -->
+            <xpath expr="//page[@name='extra']" position="inside">
+                <group string="Point of Sale" name="retailit_pos_transfer_group">
+                    <field name="transfer_requested_by"
+                           placeholder="Name of the staff member who requested this transfer"
+                           invisible="picking_type_code != 'internal'"/>
+                    <field name="transfer_validated_by"
+                           placeholder="Set automatically when validated from POS"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

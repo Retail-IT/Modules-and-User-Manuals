@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="retailit_pos_stock_transfer.TransferConfirmationDialog">
+        <Dialog title="props.title" size="'sm'">
+            <div class="rtx-confirm">
+                <div class="rtx-confirm-icon">
+                    <i class="fa fa-check-circle"/>
+                </div>
+                <div class="rtx-confirm-text">
+                    <div class="rtx-confirm-heading" t-esc="props.transferName"/>
+                    <div class="rtx-confirm-sub">The transfer has been created and confirmed.</div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="close">Close</button>
+                <button class="btn btn-primary" t-on-click="openInBackend">View in Backend</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="retailit_pos_stock_transfer.SendStockDialog">
+        <Dialog title="props.title" bodyClass="'rtx-dialog-body'" size="'lg'">
+            <main class="rtx-body">
+                <section class="rtx-card">
+                    <div class="rtx-card-head">
+                        <div class="rtx-card-icon"><i class="fa fa-exchange"/></div>
+                        <div>
+                            <div class="rtx-card-title">Create internal stock transfer</div>
+                            <div class="rtx-card-sub">Choose where the current cart's items should be sent.</div>
+                        </div>
+                    </div>
+
+                    <div class="rtx-field">
+                        <span class="rtx-label">Source Location</span>
+                        <div class="rtx-static-value" t-esc="config.source_location_name || 'Not configured'"/>
+                    </div>
+
+                    <div class="rtx-field">
+                        <span class="rtx-label">Destination Location</span>
+                        <select class="rtx-select" t-on-change="(ev) => this.selectDestination(parseInt(ev.target.value))">
+                            <t t-if="!destinations.length">
+                                <option value="">No destinations configured</option>
+                            </t>
+                            <t t-foreach="destinations" t-as="destination" t-key="destination.location_id">
+                                <option t-att-value="destination.location_id" t-att-selected="destination.location_id === state.destinationLocationId">
+                                    <t t-esc="destination.location_name"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+
+                    <label class="rtx-field">
+                        <span class="rtx-label">Staff Member Requesting</span>
+                        <input type="text" class="rtx-select" placeholder="Enter the name of the staff member requesting this transfer"
+                               t-att-value="state.staffRequesting" t-on-input="onStaffRequestingChanged"/>
+                    </label>
+
+                    <button class="btn btn-primary rtx-full-btn" t-on-click="createTransfer" t-att-disabled="state.creating">
+                        <t t-if="state.creating">Creating…</t>
+                        <t t-else="">Create Transfer</t>
+                    </button>
+                </section>
+
+                <section class="rtx-card">
+                    <div class="rtx-card-head">
+                        <div class="rtx-card-icon"><i class="fa fa-folder-open"/></div>
+                        <div>
+                            <div class="rtx-card-title">Open Transfers</div>
+                            <div class="rtx-card-sub">Sent but not yet received. You can add the current cart to one, or cancel it.</div>
+                        </div>
+                    </div>
+
+                    <t t-if="state.openLoading">
+                        <div class="rtx-empty">Loading open transfers…</div>
+                    </t>
+                    <t t-elif="state.openWarning">
+                        <div class="rtx-warning"><i class="fa fa-exclamation-triangle me-2"/><t t-esc="state.openWarning"/></div>
+                    </t>
+                    <t t-elif="!state.openTransfers.length">
+                        <div class="rtx-empty"><i class="fa fa-check-circle"/><div>No open transfers from this Point of Sale.</div></div>
+                    </t>
+                    <t t-else="">
+                        <div class="rtx-list">
+                            <t t-foreach="state.openTransfers" t-as="transfer" t-key="transfer.id">
+                                <button type="button"
+                                        t-att-class="'rtx-list-item ' + (state.selectedOpenTransferId === transfer.id ? 'active' : '')"
+                                        t-on-click="() => this.selectOpenTransfer(transfer.id)">
+                                    <div class="rtx-list-item-top">
+                                        <strong t-esc="transfer.name"/>
+                                        <span class="rtx-badge" t-esc="transfer.state_label"/>
+                                    </div>
+                                    <div class="rtx-list-item-route">
+                                        <t t-esc="transfer.source"/>
+                                        <i class="fa fa-arrow-right mx-1"/>
+                                        <t t-esc="transfer.destination"/>
+                                    </div>
+                                    <div class="rtx-list-item-meta">
+                                        <t t-esc="transfer.item_count"/> item(s) · <t t-esc="formatDate(transfer.date)"/>
+                                    </div>
+                                </button>
+                            </t>
+                        </div>
+
+                        <t t-if="selectedOpenTransfer">
+                            <div class="rtx-detail">
+                                <table class="rtx-detail-table">
+                                    <thead>
+                                        <tr><th>Product</th><th class="rtx-qty">Qty</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="selectedOpenTransfer.items" t-as="item" t-key="item.move_id">
+                                            <tr>
+                                                <td t-esc="item.display_name"/>
+                                                <td class="rtx-qty"><t t-esc="item.quantity"/> <t t-esc="item.uom"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                <div class="rtx-detail-actions">
+                                    <button class="btn btn-secondary" t-on-click="printTransfer(selectedOpenTransfer)">
+                                        <i class="fa fa-print me-1"/>Print
+                                    </button>
+                                    <button class="btn btn-secondary" t-on-click="addCurrentCartToOpenTransfer" t-att-disabled="state.updatingOpenTransfer">
+                                        Add Cart to Transfer
+                                    </button>
+                                    <button class="btn btn-danger" t-on-click="cancelOpenTransfer" t-att-disabled="state.updatingOpenTransfer">
+                                        Cancel Transfer
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+                </section>
+            </main>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="close">Close</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

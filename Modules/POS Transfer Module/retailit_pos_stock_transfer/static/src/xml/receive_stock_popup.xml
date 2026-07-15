@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="retailit_pos_stock_transfer.ReceiveStockDialog">
+        <Dialog title="props.title" bodyClass="'rtx-dialog-body'" size="'lg'">
+            <main class="rtx-body">
+                <div class="rtx-tabs">
+                    <button t-att-class="'rtx-tab ' + (state.activeTab === 'transfers' ? 'active' : '')" t-on-click="() => this.setActiveTab('transfers')">
+                        Internal Transfers
+                    </button>
+                    <button t-att-class="'rtx-tab ' + (state.activeTab === 'receipts' ? 'active' : '')" t-on-click="() => this.setActiveTab('receipts')">
+                        Purchase Receipts
+                    </button>
+                </div>
+
+                <section class="rtx-card" t-if="state.activeTab === 'transfers'">
+                    <t t-if="state.loadingTransfers">
+                        <div class="rtx-empty">Loading incoming transfers…</div>
+                    </t>
+                    <t t-elif="state.transfersWarning">
+                        <div class="rtx-warning"><i class="fa fa-exclamation-triangle me-2"/><t t-esc="state.transfersWarning"/></div>
+                    </t>
+                    <t t-elif="!state.transfers.length">
+                        <div class="rtx-empty"><i class="fa fa-check-circle"/><div>No incoming transfers.</div></div>
+                    </t>
+                    <t t-else="">
+                        <div class="rtx-list">
+                            <t t-foreach="state.transfers" t-as="transfer" t-key="transfer.id">
+                                <button type="button"
+                                        t-att-class="'rtx-list-item ' + (state.selectedTransferId === transfer.id ? 'active' : '')"
+                                        t-on-click="() => this.selectTransfer(transfer.id)">
+                                    <div class="rtx-list-item-top">
+                                        <strong t-esc="transfer.name"/>
+                                        <span class="rtx-badge" t-esc="transfer.state_label"/>
+                                    </div>
+                                    <div class="rtx-list-item-route">
+                                        <t t-esc="transfer.source"/>
+                                        <i class="fa fa-arrow-right mx-1"/>
+                                        <t t-esc="transfer.destination"/>
+                                    </div>
+                                    <div class="rtx-list-item-meta">
+                                        <t t-esc="transfer.item_count"/> item(s) · <t t-esc="formatDate(transfer.date)"/>
+                                    </div>
+                                </button>
+                            </t>
+                        </div>
+
+                        <t t-if="selectedTransfer">
+                            <div class="rtx-detail">
+                                <table class="rtx-detail-table">
+                                    <thead>
+                                        <tr><th>Product</th><th class="rtx-qty">Qty</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="selectedTransfer.items" t-as="item" t-key="item.move_id">
+                                            <tr>
+                                                <td t-esc="item.display_name"/>
+                                                <td class="rtx-qty"><t t-esc="item.quantity"/> <t t-esc="item.uom"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                <div class="rtx-detail-actions">
+                                    <button class="btn btn-secondary" t-on-click="printPicking(selectedTransfer)">
+                                        <i class="fa fa-print me-1"/>Print
+                                    </button>
+                                    <button class="btn btn-primary" t-on-click="validateSelectedTransfer" t-att-disabled="state.validatingTransfer">
+                                        Validate &amp; Receive
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+                </section>
+
+                <section class="rtx-card" t-if="state.activeTab === 'receipts'">
+                    <t t-if="state.loadingReceipts">
+                        <div class="rtx-empty">Loading purchase receipts…</div>
+                    </t>
+                    <t t-elif="state.receiptsWarning">
+                        <div class="rtx-warning"><i class="fa fa-exclamation-triangle me-2"/><t t-esc="state.receiptsWarning"/></div>
+                    </t>
+                    <t t-elif="!state.receipts.length">
+                        <div class="rtx-empty"><i class="fa fa-check-circle"/><div>No incoming purchase receipts.</div></div>
+                    </t>
+                    <t t-else="">
+                        <div class="rtx-list">
+                            <t t-foreach="state.receipts" t-as="receipt" t-key="receipt.id">
+                                <button type="button"
+                                        t-att-class="'rtx-list-item ' + (state.selectedReceiptId === receipt.id ? 'active' : '')"
+                                        t-on-click="() => this.selectReceipt(receipt.id)">
+                                    <div class="rtx-list-item-top">
+                                        <strong t-esc="receipt.name"/>
+                                        <span class="rtx-badge" t-esc="receipt.state_label"/>
+                                    </div>
+                                    <div class="rtx-list-item-route">
+                                        <t t-esc="receipt.source"/>
+                                        <i class="fa fa-arrow-right mx-1"/>
+                                        <t t-esc="receipt.destination"/>
+                                    </div>
+                                    <div class="rtx-list-item-meta">
+                                        <t t-esc="receipt.item_count"/> item(s) · <t t-esc="formatDate(receipt.date)"/>
+                                    </div>
+                                </button>
+                            </t>
+                        </div>
+
+                        <t t-if="selectedReceipt">
+                            <div class="rtx-detail">
+                                <table class="rtx-detail-table">
+                                    <thead>
+                                        <tr><th>Product</th><th class="rtx-qty">Qty</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="selectedReceipt.items" t-as="item" t-key="item.move_id">
+                                            <tr>
+                                                <td t-esc="item.display_name"/>
+                                                <td class="rtx-qty"><t t-esc="item.quantity"/> <t t-esc="item.uom"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                <div class="rtx-detail-actions">
+                                    <button class="btn btn-secondary" t-on-click="printPicking(selectedReceipt)">
+                                        <i class="fa fa-print me-1"/>Print
+                                    </button>
+                                    <button class="btn btn-primary" t-on-click="validateSelectedReceipt" t-att-disabled="state.validatingReceipt">
+                                        Validate &amp; Receive
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+                    </t>
+                </section>
+            </main>
+            <t t-set-slot="footer">
+                <button class="btn btn-secondary" t-on-click="close">Close</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

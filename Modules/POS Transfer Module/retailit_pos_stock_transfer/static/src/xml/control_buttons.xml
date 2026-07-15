@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="retailit_pos_stock_transfer.ControlButtons" t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='props.showRemainingButtons']/div" position="inside">
+            <button t-if="pos.stockTransferConfig?.enabled" t-att-class="buttonClass" t-on-click="onClickSendStock">
+                <i class="fa fa-exchange me-1"/>
+                <span>Send Stock</span>
+            </button>
+            <button t-if="pos.stockTransferConfig?.enabled" t-att-class="buttonClass" t-on-click="onClickReceiveStock">
+                <i class="fa fa-download me-1"/>
+                <span>Receive Stock</span>
+            </button>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Retail IT POS Stock Transfer - User Manual</title>
+    <link rel="stylesheet" href="assets/manual.css">
+    <script src="assets/captions.js" defer></script>
+</head>
+<body>
+    <div class="manual">
+        <aside class="sidebar">
+            <img class="logo" src="assets/logo/RIT_Logo_White.png" alt="Retail IT Group logo">
+            <h1>Retail IT POS Stock Transfer</h1>
+            <p>User manual for sending and receiving internal stock transfers and purchase receipts directly from the POS screen.</p>
+            <nav class="toc" aria-label="Table of contents">
+                <a href="#introduction">1. Introduction</a>
+                <a href="#configuration">2. Configuration</a>
+                <a href="#how-it-works">3. How It Works</a>
+                <a href="#sending-stock">4. Sending Stock</a>
+                <a href="#receiving-stock">5. Receiving Stock</a>
+                <a href="#edge-cases">6. Edge Cases &amp; Important Notes</a>
+                <a href="#states">7. States and Reasons</a>
+                <a href="#best-practices">8. Best Practices</a>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header class="hero">
+                <h2>Retail IT POS Stock Transfer User Manual</h2>
+                <p>
+                    This module lets cashiers create and receive internal stock transfers between
+                    store locations without leaving the Point of Sale screen. It also lets staff
+                    validate incoming purchase receipts from POS, with every receipt or transfer
+                    confirmed by an employee PIN and backed by a printable slip.
+                </p>
+                <div class="meta">
+                    <span class="pill">Point of Sale</span>
+                    <span class="pill">Stock Transfers</span>
+                    <span class="pill">Multi-Location</span>
+                </div>
+            </header>
+
+            <section id="introduction">
+                <h2>1. Introduction</h2>
+                <p class="lead">
+                    Retail IT POS Stock Transfer adds two buttons to the POS product screen,
+                    "Send Stock" and "Receive Stock", on any terminal set up to use them. It builds
+                    on Odoo's standard internal transfer (<code>stock.picking</code>) workflow, so
+                    every transfer created from a POS terminal is a normal, fully auditable internal
+                    transfer that can also be reviewed and adjusted from the Inventory app.
+                </p>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Main purpose</h3>
+                        <p>
+                            Give store staff a fast, cart-based way to move stock between locations
+                            (for example, from a stockroom to a POS-facing shelf, or between two
+                            store locations) and to receive both internal transfers and purchase
+                            receipts addressed to their terminal, all without leaving the POS UI.
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>Operational flow</h3>
+                        <p>
+                            A cashier adds products to the POS cart, opens "Send Stock", picks a
+                            destination and enters their name, and the module creates and confirms
+                            a stock transfer. At the receiving end, a cashier opens "Receive Stock",
+                            picks the incoming transfer or receipt, and validates it after entering
+                            an employee PIN.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="configuration">
+                <h2>2. Configuration</h2>
+                <p>
+                    Configuration happens in two steps, both under
+                    <code>Point of Sale &gt; Configuration &gt; Transfers</code>.
+                </p>
+
+                <div class="shot">
+                    <img src="assets/screenshots/01_transfer_locations.png" alt="Point of Sale Transfer Locations list">
+                </div>
+                <p class="caption"></p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Location</code></td>
+                            <td>
+                                The internal stock location being made available for transfers
+                                (for example, a stockroom or a store's selling location). Only
+                                internal-type locations can be added, and each location can only
+                                appear once in the list.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Receiving Operation Type</code></td>
+                            <td>
+                                The internal operation type used whenever goods arrive at this
+                                location, whether sent by another POS terminal or received from a
+                                purchase order. This determines which operation type name and
+                                sequence appear on the resulting picking.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Sequence</code></td>
+                            <td>Controls the display order of the list; drag rows to reorder.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="note">
+                    Transfer Locations is a single global list, not a per-POS setting. Any location
+                    added here becomes a valid transfer destination for every POS terminal in the
+                    company - you only need to add each location once.
+                </div>
+
+                <div class="shot">
+                    <img src="assets/screenshots/02_assign_transfer_locations.png" alt="Assign Transfer Locations list, one row per POS terminal">
+                </div>
+                <p class="caption"></p>
+
+                <p>
+                    The second step, <code>Assign Transfer Locations</code>, is a simple editable
+                    list with one row per POS terminal (<code>pos.config</code>). Set each
+                    terminal's <code>Transfer Location</code> to the entry in the global list that
+                    represents where that physical terminal is located.
+                </p>
+
+                <div class="example">
+                    <h3>Example configuration</h3>
+                    <p>
+                        A store has a Stockroom and a Shop Floor location, each with its own
+                        internal receiving operation type. Both are added to Transfer Locations.
+                        The stockroom's POS terminal is then assigned "Stockroom" and the shop
+                        floor's POS terminal is assigned "Shop Floor" under Assign Transfer
+                        Locations. Staff on the shop floor can now send stock to, or receive stock
+                        from, the stockroom terminal, and vice versa.
+                    </p>
+                </div>
+
+                <div class="note warning">
+                    Leaving a terminal's Transfer Location empty disables stock transfers on that
+                    terminal entirely - the Send Stock and Receive Stock buttons will not appear
+                    on the POS product screen until a location is assigned.
+                </div>
+            </section>
+
+            <section id="how-it-works">
+                <h2>3. How It Works</h2>
+                <p>
+                    The module adds one new model to track the pool of transfer-enabled locations,
+                    and two small fields on the standard stock transfer record so that POS activity
+                    stays traceable in the backend.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field / Data</th>
+                            <th>Source</th>
+                            <th>Rule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>retailit.pos.transfer.location</code></td>
+                            <td>New model</td>
+                            <td>
+                                One record per transfer-enabled internal location, pairing it with
+                                the operation type used to receive goods there. This is the single
+                                source of truth for every destination offered in the Send Stock
+                                popup.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>pos.config.transfer_location_id</code></td>
+                            <td>Extends <code>pos.config</code></td>
+                            <td>
+                                Which Transfer Location a given POS terminal represents. Determines
+                                both the terminal's own source location for sending, and the
+                                operation type used to find incoming transfers for receiving.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>stock.picking.transfer_requested_by</code></td>
+                            <td>Extends <code>stock.picking</code></td>
+                            <td>
+                                Free-text name of the staff member who requested a transfer from
+                                POS, captured when the transfer is created. Only relevant for
+                                internal transfers and shown on the picking's Extra tab.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>stock.picking.transfer_validated_by</code></td>
+                            <td>Extends <code>stock.picking</code></td>
+                            <td>
+                                The employee whose PIN was used to validate the transfer or receipt
+                                from POS. Set automatically when validation succeeds; not editable
+                                from the POS itself.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="lead">
+                    Every transfer created or validated through this module is a standard
+                    <code>stock.picking</code> record, so it also shows up in the normal Inventory
+                    app transfer lists and reports - the POS popups are simply a faster front end
+                    onto the same records.
+                </p>
+            </section>
+
+            <section id="sending-stock">
+                <h2>4. Sending Stock</h2>
+                <p>
+                    The "Send Stock" button only appears on a POS terminal once a Transfer Location
+                    has been assigned to it. It opens a dialog with two parts: creating a new
+                    transfer from the current cart, and managing transfers already sent from this
+                    terminal that haven't been received yet.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/03_send_stock.png" alt="Send Stock dialog showing destination selection and open transfers list">
+                </div>
+                <p class="caption"></p>
+                <ol class="steps">
+                    <li>
+                        Add the products and quantities to be transferred to the POS cart, then
+                        open <strong>Send Stock</strong>.
+                    </li>
+                    <li>
+                        The terminal's own Source Location is shown read-only. Choose a
+                        <strong>Destination Location</strong> from the other locations in the
+                        global Transfer Locations list, and enter the name of the
+                        <strong>Staff Member Requesting</strong> the transfer.
+                    </li>
+                    <li>
+                        Select <strong>Create Transfer</strong>. The module splits stockable and
+                        service products - service products cannot be moved by stock transfer and
+                        the cashier is warned they will be skipped. The transfer is created and
+                        immediately confirmed, a confirmation dialog appears with a link to view it
+                        in the backend, and the current cart is cleared automatically.
+                    </li>
+                    <li>
+                        Transfers sent from this terminal that have not yet been received appear
+                        under <strong>Open Transfers</strong>. Selecting one shows its product list
+                        and lets you print a packing slip, add the current cart's items to it
+                        (useful if more stock needs to go out before it's received), or cancel it
+                        outright.
+                    </li>
+                </ol>
+            </section>
+
+            <section id="receiving-stock">
+                <h2>5. Receiving Stock</h2>
+                <p>
+                    The "Receive Stock" button, shown alongside Send Stock, opens a dialog with two
+                    tabs: <strong>Internal Transfers</strong> addressed to this terminal's location,
+                    and <strong>Purchase Receipts</strong> destined for it. Both work the same way
+                    once a transfer or receipt is selected.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/04_receive_stock.png" alt="Receive Stock dialog with Internal Transfers and Purchase Receipts tabs">
+                </div>
+                <p class="caption"></p>
+                <ol class="steps">
+                    <li>
+                        Open <strong>Receive Stock</strong> and switch to the relevant tab. Each
+                        list shows transfers or receipts that are waiting, confirmed, or ready,
+                        ordered by their scheduled date.
+                    </li>
+                    <li>
+                        Select an item to see its product and quantity list, then use
+                        <strong>Print</strong> to print a receiving slip for physical
+                        verification against the goods received.
+                    </li>
+                    <li>
+                        Select <strong>Validate &amp; Receive</strong>. This opens an employee PIN
+                        pad - PINs are checked against the standard Odoo HR employee PIN and are
+                        verified server-side, so the PIN itself is never exposed to the browser.
+                    </li>
+                    <li>
+                        After a confirmation prompt, the module reserves and validates the picking
+                        for the full ordered quantity of every line, records which employee's PIN
+                        validated it, and reports the result.
+                    </li>
+                </ol>
+                <div class="shot">
+                    <img src="assets/screenshots/05_employee_pin.png" alt="Employee PIN entry pad shown before validating a transfer or receipt">
+                </div>
+                <p class="caption"></p>
+                <div class="shot">
+                    <img src="assets/screenshots/06_packing_slip.png" alt="Printable packing slip with product list and signature lines">
+                </div>
+                <p class="caption"></p>
+            </section>
+
+            <section id="edge-cases">
+                <h2>6. Edge Cases &amp; Important Notes</h2>
+                <div class="warning note">
+                    <strong>Validate &amp; Receive always books the full ordered quantity.</strong>
+                    The POS validation flow does not offer a per-line quantity adjustment - every
+                    remaining line on the transfer or receipt is set to its full ordered quantity
+                    before validating. If the goods actually received don't match what was ordered,
+                    do not validate from POS; correct the quantities from the Inventory app instead.
+                </div>
+                <div class="warning note">
+                    <strong>Backorders are automatically cancelled, not created.</strong> If a
+                    transfer or receipt can't be fully reserved when validated from POS, Odoo's
+                    standard backorder prompt is answered automatically to cancel the backorder
+                    rather than create a follow-up picking. Any quantity that couldn't be received
+                    at that moment will not be tracked as still outstanding - check the original
+                    document in the backend if a shortfall is suspected.
+                </div>
+                <p>
+                    <strong>Cancel Transfer is destructive.</strong> Cancelling an open transfer
+                    from the Send Stock popup cancels the underlying picking in Odoo. It cannot be
+                    reopened from the POS - if the transfer is still needed, it must be recreated.
+                </p>
+                <p>
+                    <strong>Add Cart to Transfer only works on genuinely open transfers.</strong> A
+                    transfer can only be appended to if it is still an internal-type picking, not
+                    yet done or cancelled, and was originally sent from this same terminal's source
+                    location. Any other case surfaces an explanatory message instead of updating the
+                    transfer.
+                </p>
+                <p>
+                    <strong>Service products are silently skipped from transfers.</strong> Only
+                    stockable and consumable products can be moved by a stock transfer. If the cart
+                    contains service products when creating a transfer, the cashier is warned and
+                    those lines are left out of the transfer.
+                </p>
+                <p>
+                    <strong>The PIN check is not tied to the logged-in cashier.</strong> Any active
+                    employee's PIN can validate a receipt or transfer on any terminal, so the
+                    employee recorded in <code>Validated By (POS)</code> may be different from
+                    whichever cashier is logged into the POS session.
+                </p>
+            </section>
+
+            <section id="states">
+                <h2>7. States and Reasons</h2>
+                <p>
+                    Both the Send Stock and Receive Stock popups show a simplified status label
+                    over the underlying <code>stock.picking</code> state, matching what a cashier
+                    needs to know without exposing full backend terminology.
+                </p>
+                <div class="status-list">
+                    <div class="status"><strong>Draft</strong><small>Transfer created but not yet confirmed.</small></div>
+                    <div class="status"><strong>Waiting</strong><small>Confirmed, waiting on stock to become available (covers both "waiting" and "confirmed" backend states).</small></div>
+                    <div class="status"><strong>Ready</strong><small>Stock has been reserved and the transfer is ready to be validated.</small></div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Backend state</th>
+                            <th>Meaning</th>
+                            <th>Typical action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>draft</code></td>
+                            <td>Picking record exists but hasn't been confirmed. Transfers created from Send Stock are confirmed automatically, so this is rarely seen from POS.</td>
+                            <td>No action needed from POS.</td>
+                        </tr>
+                        <tr>
+                            <td><code>waiting</code> / <code>confirmed</code></td>
+                            <td>Confirmed and shown as "Waiting" - stock has not yet been fully reserved for this transfer.</td>
+                            <td>Wait for stock to become available, or check availability in the backend.</td>
+                        </tr>
+                        <tr>
+                            <td><code>assigned</code></td>
+                            <td>Stock has been reserved and the transfer shows as "Ready" - it can now be validated from Receive Stock.</td>
+                            <td>Validate &amp; Receive once the physical goods have been checked.</td>
+                        </tr>
+                        <tr>
+                            <td><code>done</code></td>
+                            <td>Validated and complete. No longer shown in any of the POS lists.</td>
+                            <td>None - view history in the Inventory app if needed.</td>
+                        </tr>
+                        <tr>
+                            <td><code>cancel</code></td>
+                            <td>Cancelled, either via Cancel Transfer from POS or from the backend. No longer editable.</td>
+                            <td>Recreate the transfer from POS if the stock still needs to move.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="best-practices">
+                <h2>8. Best Practices</h2>
+                <ol class="steps">
+                    <li>
+                        Physically verify stock on the shelf or in the stockroom before creating a
+                        Send Stock transfer - the transfer is confirmed and reserved as soon as it's
+                        created, so it should reflect what's actually being sent.
+                    </li>
+                    <li>
+                        Always enter the requesting staff member's full name (not initials or
+                        nicknames) in Staff Member Requesting, using a consistent naming convention
+                        across the store, so the packing slip and transfer history stay easy to
+                        trace back to a specific person.
+                    </li>
+                    <li>
+                        Because Validate &amp; Receive always books the full ordered quantity with
+                        no adjustment step in the POS, physically count and match stock against the
+                        printed slip before validating. If the actual quantity received differs,
+                        stop and correct the transfer or receipt from the Inventory app instead of
+                        validating it from POS.
+                    </li>
+                    <li>
+                        Keep employee PINs confidential and have each cashier enter only their own
+                        PIN when validating, so <code>Validated By (POS)</code> accurately reflects
+                        who physically checked the goods in.
+                    </li>
+                    <li>
+                        Print the packing or receiving slip for every transfer and use it as a
+                        physical checklist - tick off each product line against the goods on hand
+                        before validating.
+                    </li>
+                    <li>
+                        Review the Transfer Locations list periodically (Point of Sale &gt;
+                        Configuration &gt; Transfers &gt; Transfer Locations) to confirm the
+                        Receiving Operation Type assigned to each location still matches how goods
+                        should be received there, especially after adding a new store location.
+                    </li>
+                    <li>
+                        Only use Cancel Transfer for genuine mistakes. Since a cancelled transfer
+                        cannot be reopened from the POS, double-check with the requesting staff
+                        member before cancelling if there's any doubt.
+                    </li>
+                </ol>
+            </section>
+        </main>
+    </div>
+
+    <div class="lightbox-overlay" id="lightbox">
+        <button class="lightbox-close" aria-label="Close">&times;</button>
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
+    <script>
+        (function () {
+            const overlay = document.getElementById('lightbox');
+            const overlayImg = document.getElementById('lightbox-img');
+            document.querySelectorAll('.shot img').forEach(function (img) {
+                img.addEventListener('click', function () {
+                    overlayImg.src = img.src;
+                    overlayImg.alt = img.alt;
+                    overlay.classList.add('open');
+                });
+            });
+            overlay.addEventListener('click', function () {
+                overlay.classList.remove('open');
+                overlayImg.src = '';
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    overlay.classList.remove('open');
+                    overlayImg.src = '';
+                }
+            });
+
+            // Auto-fill captions from assets/captions.js
+            if (typeof MANUAL_CAPTIONS !== 'undefined') {
+                document.querySelectorAll('.shot').forEach(function (shot) {
+                    const img = shot.querySelector('img');
+                    const captionEl = shot.nextElementSibling;
+                    if (!img || !captionEl || !captionEl.classList.contains('caption')) return;
+                    const filename = img.getAttribute('src').split('/').pop();
+                    const text = MANUAL_CAPTIONS[filename];
+                    captionEl.textContent = text || '';
+                    captionEl.style.display = text ? '' : 'none';
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

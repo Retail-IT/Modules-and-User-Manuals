@@ -1,0 +1,278 @@
+.rtx-dialog-body {
+    max-height: 78vh;
+    overflow-y: auto;
+}
+
+.rtx-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 4px 2px;
+}
+
+.rtx-card {
+    border: 1px solid #e4e4e7;
+    border-radius: 10px;
+    padding: 16px;
+    background: #fff;
+}
+
+.rtx-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.rtx-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f4f4f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #52525b;
+    flex-shrink: 0;
+}
+
+.rtx-card-title {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.rtx-card-sub {
+    font-size: 12.5px;
+    color: #71717a;
+    margin-top: 2px;
+}
+
+.rtx-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.rtx-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #71717a;
+}
+
+.rtx-select {
+    border: 1px solid #d4d4d8;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
+}
+
+.rtx-static-value {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #f4f4f5;
+    font-weight: 600;
+}
+
+.rtx-full-btn {
+    width: 100%;
+    margin-top: 4px;
+}
+
+.rtx-empty {
+    padding: 24px 8px;
+    text-align: center;
+    color: #71717a;
+    font-size: 13px;
+}
+
+.rtx-empty i {
+    display: block;
+    font-size: 22px;
+    margin-bottom: 6px;
+    color: #22c55e;
+}
+
+.rtx-warning {
+    padding: 12px;
+    border-radius: 8px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 13px;
+}
+
+.rtx-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.rtx-list-item {
+    text-align: left;
+    border: 1px solid #e4e4e7;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.rtx-list-item.active {
+    border-color: #6366f1;
+    background: #eef2ff;
+}
+
+.rtx-list-item-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rtx-list-item-route {
+    font-size: 12.5px;
+    color: #52525b;
+    margin-top: 2px;
+}
+
+.rtx-list-item-meta {
+    font-size: 11.5px;
+    color: #a1a1aa;
+    margin-top: 2px;
+}
+
+.rtx-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #e4e4e7;
+    color: #3f3f46;
+}
+
+.rtx-detail {
+    margin-top: 14px;
+    border-top: 1px dashed #e4e4e7;
+    padding-top: 12px;
+}
+
+.rtx-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.rtx-detail-table th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #71717a;
+    padding: 6px 4px;
+    border-bottom: 1px solid #e4e4e7;
+}
+
+.rtx-detail-table td {
+    padding: 6px 4px;
+    border-bottom: 1px solid #f4f4f5;
+}
+
+.rtx-qty {
+    text-align: right;
+}
+
+.rtx-detail-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.rtx-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.rtx-tab {
+    border: 1px solid #e4e4e7;
+    border-radius: 999px;
+    padding: 6px 14px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    color: #52525b;
+}
+
+.rtx-tab.active {
+    background: #111827;
+    color: #fff;
+    border-color: #111827;
+}
+
+.rtx-confirm {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 4px;
+}
+
+.rtx-confirm-icon {
+    font-size: 28px;
+    color: #22c55e;
+}
+
+.rtx-confirm-heading {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.rtx-confirm-sub {
+    font-size: 12.5px;
+    color: #71717a;
+}
+
+.rtx-pin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 4px;
+}
+
+.rtx-pin-display {
+    font-size: 24px;
+    letter-spacing: 4px;
+    font-weight: 700;
+    min-height: 32px;
+}
+
+.rtx-pin-error {
+    color: #dc2626;
+    font-size: 12.5px;
+}
+
+.rtx-pin-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 56px);
+    gap: 8px;
+}
+
+.rtx-pin-key {
+    height: 48px;
+    border-radius: 8px;
+    border: 1px solid #e4e4e7;
+    background: #fff;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.rtx-pin-key-muted {
+    color: #71717a;
+}
+
+.rtx-pin-key-primary {
+    background: #111827;
+    color: #fff;
+}

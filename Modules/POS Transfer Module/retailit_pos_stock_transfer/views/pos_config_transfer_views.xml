@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        These are brand new views, not inherited from Odoo's own pos.config
+        views. Deliberately not touching point_of_sale.pos_config_view_form
+        or its list view: their exact internal field layout differs across
+        versions/instances (an earlier attempt at xpath-anchoring onto that
+        form broke on install because the assumed anchor field wasn't where
+        expected). Standalone views sidestep that entirely - nothing here
+        depends on the internal structure of a view we don't own.
+    -->
+    <record id="pos_config_transfer_view_list" model="ir.ui.view">
+        <field name="name">pos.config.transfer.location.assign.list</field>
+        <field name="model">pos.config</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" create="false" delete="false">
+                <field name="name" readonly="1"/>
+                <field name="transfer_location_id" options="{'no_create': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="pos_config_transfer_view_form" model="ir.ui.view">
+        <field name="name">pos.config.transfer.location.assign.form</field>
+        <field name="model">pos.config</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <sheet>
+                    <group>
+                        <field name="name" readonly="1"/>
+                        <field name="transfer_location_id" options="{'no_create': True}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pos_config_transfer_action" model="ir.actions.act_window">
+        <field name="name">Assign Transfer Locations</field>
+        <field name="res_model">pos.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Set which Transfer Location each POS terminal represents.
+            </p>
+            <p>
+                Manage the pool of available locations first under
+                Point of Sale &gt; Configuration &gt; Transfer Locations.
+            </p>
+        </field>
+    </record>
+
+    <record id="pos_config_transfer_action_view_list" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="pos_config_transfer_view_list"/>
+        <field name="act_window_id" ref="pos_config_transfer_action"/>
+    </record>
+
+    <record id="pos_config_transfer_action_view_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="pos_config_transfer_view_form"/>
+        <field name="act_window_id" ref="pos_config_transfer_action"/>
+    </record>
+
+    <menuitem id="menu_retailit_pos_config_transfer"
+              name="Assign Transfer Locations"
+              parent="menu_retailit_pos_transfers_root"
+              action="pos_config_transfer_action"
+              sequence="20"/>
+</odoo>

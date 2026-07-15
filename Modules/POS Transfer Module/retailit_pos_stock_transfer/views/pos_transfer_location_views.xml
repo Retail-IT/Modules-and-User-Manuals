@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="pos_transfer_location_view_list" model="ir.ui.view">
+        <field name="name">retailit.pos.transfer.location.list</field>
+        <field name="model">retailit.pos.transfer.location</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="location_id" options="{'no_create': True}"/>
+                <field name="picking_type_id" options="{'no_create': True}"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="pos_transfer_location_view_form" model="ir.ui.view">
+        <field name="name">retailit.pos.transfer.location.form</field>
+        <field name="model">retailit.pos.transfer.location</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="location_id" options="{'no_create': True}"/>
+                        <field name="picking_type_id" options="{'no_create': True}"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="pos_transfer_location_action" model="ir.actions.act_window">
+        <field name="name">Transfer Locations</field>
+        <field name="res_model">retailit.pos.transfer.location</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add a location to make it available for stock transfers on every Point of Sale terminal.
+            </p>
+            <p>
+                Each POS terminal then just needs to say which of these locations it is,
+                under Transfers &gt; Assign Transfer Locations.
+            </p>
+        </field>
+    </record>
+
+    <!--
+        Grouped subsection inside Odoo's own Configuration menu
+        (point_of_sale.menu_point_config_product - confirmed via View
+        Metadata on the live instance), styled the same way the existing
+        "Products" group is: a menu item with children and no action of
+        its own renders as a bold section header followed by its indented
+        children.
+    -->
+    <menuitem id="menu_retailit_pos_transfers_root"
+              name="Transfers"
+              parent="point_of_sale.menu_point_config_product"
+              sequence="60"/>
+
+    <menuitem id="menu_retailit_pos_transfer_location"
+              name="Transfer Locations"
+              parent="menu_retailit_pos_transfers_root"
+              action="pos_transfer_location_action"
+              sequence="10"/>
+</odoo>
