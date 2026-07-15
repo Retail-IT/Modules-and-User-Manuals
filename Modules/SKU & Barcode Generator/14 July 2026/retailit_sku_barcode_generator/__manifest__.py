@@ -27,7 +27,7 @@ Combines automatic product barcode generation with category-based SKU
         "sale_management",
     ],
     "external_dependencies": {
-        "python": ["python-barcode"],
+        "python": ["barcode"],
     },
     "data": [
         "security/retailit_sku_barcode_generator_groups.xml",
