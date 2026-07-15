@@ -92,12 +92,20 @@
                 <p>
                     Go to <code>Website &rarr; Configuration &rarr; eCommerce &rarr; Analytic Accounts</code>.
                 </p>
+                <div class="shot">
+                    <img src="assets/screenshots/01_config_menu_path.png" alt="Website > Configuration > eCommerce > Analytic Accounts menu">
+                </div>
+                <p class="caption"></p>
                 <ol class="steps">
-                    <li><code>[SCREENSHOT: Website > Configuration > eCommerce > Analytic Accounts menu]</code> Open the Analytic Accounts list.</li>
+                    <li>Open the Analytic Accounts list.</li>
                     <li>Click <strong>New</strong> and choose the <strong>Website</strong> this mapping applies to.</li>
                     <li>Choose the <strong>Analytic Account</strong> that should be used for every order placed on that website.</li>
-                    <li>Save. <code>[SCREENSHOT: Website Analytic Mapping form with Website and Analytic Account fields filled in]</code></li>
+                    <li>Save.</li>
                 </ol>
+                <div class="shot">
+                    <img src="assets/screenshots/02_config_mapping_form.png" alt="Website Analytic Mapping form with Website and Analytic Account fields filled in">
+                </div>
+                <p class="caption"></p>
                 <div class="note">
                     Each website can only have one mapping. If you try to create a second mapping
                     for a website that already has one, Odoo will block it — edit the existing
@@ -132,9 +140,13 @@
                     <code>Website &rarr; Configuration &rarr; eCommerce &rarr; Sweep Missing Analytic Accounts</code>.
                 </p>
                 <ol class="steps">
-                    <li><code>[SCREENSHOT: Sweep Missing Analytic Accounts menu item]</code> Click the menu item — it runs immediately, there is no confirmation screen.</li>
+                    <li>Click the menu item — it runs immediately, there is no confirmation screen.</li>
                     <li>A notification appears summarising how many Sales Orders, order lines, invoices, and invoice lines were updated.</li>
                 </ol>
+                <div class="shot">
+                    <img src="assets/screenshots/03_config_sweep_menu.png" alt="Sweep Missing Analytic Accounts menu item">
+                </div>
+                <p class="caption"></p>
                 <table>
                     <thead>
                         <tr><th>What it checks</th><th>What it does</th></tr>
@@ -169,13 +181,21 @@
                 <h2>3. Sales Orders</h2>
                 <p>
                     An <strong>Analytic Distribution</strong> field appears on the order header,
-                    next to the Customer field. <code>[SCREENSHOT: Sales Order form showing the Analytic Distribution field next to Customer]</code>
+                    next to the Customer field.
                 </p>
+                <div class="shot">
+                    <img src="assets/screenshots/04_so_field.png" alt="Sales Order form showing the Analytic Distribution field next to Customer">
+                </div>
+                <p class="caption"></p>
                 <ol class="steps">
                     <li>Open the field and choose one or more analytic accounts.</li>
                     <li>If splitting across more than one account, enter the percentage for each — they should add up to 100%.</li>
-                    <li>Click <strong>Apply Analytic</strong> in the header button bar. <code>[SCREENSHOT: Apply Analytic button in the Sales Order header]</code></li>
+                    <li>Click <strong>Apply Analytic</strong> in the header button bar.</li>
                 </ol>
+                <div class="shot">
+                    <img src="assets/screenshots/05_so_apply_button.png" alt="Apply Analytic button in the Sales Order header">
+                </div>
+                <p class="caption"></p>
                 <div class="note warning">
                     Clicking <strong>Apply Analytic</strong> writes the header distribution onto
                     every product line on the order — including lines that already have their
@@ -213,12 +233,20 @@
                 <p>
                     The same pattern applies to Purchase Orders. An <strong>Analytic
                     Distribution</strong> field appears on the header, next to the Vendor
-                    Reference field. <code>[SCREENSHOT: Purchase Order form showing the Analytic Distribution field next to Vendor Reference]</code>
+                    Reference field.
                 </p>
+                <div class="shot">
+                    <img src="assets/screenshots/06_po_field.png" alt="Purchase Order form showing the Analytic Distribution field next to Vendor Reference">
+                </div>
+                <p class="caption"></p>
                 <ol class="steps">
                     <li>Open the field and set the split across one or more analytic accounts.</li>
-                    <li>Click <strong>Apply Analytic</strong> in the header button bar. <code>[SCREENSHOT: Apply Analytic button in the Purchase Order header]</code></li>
+                    <li>Click <strong>Apply Analytic</strong> in the header button bar.</li>
                 </ol>
+                <div class="shot">
+                    <img src="assets/screenshots/07_po_apply_button.png" alt="Apply Analytic button in the Purchase Order header">
+                </div>
+                <p class="caption"></p>
                 <div class="note warning">
                     Just like Sales Orders, clicking <strong>Apply Analytic</strong> overwrites
                     the distribution on every product line, including lines that already had a
@@ -252,10 +280,18 @@
                 <h3>Using the Apply Analytic wizard</h3>
                 <ol class="steps">
                     <li>Open the Customer Invoice or Vendor Bill.</li>
-                    <li>Click <strong>Apply Analytic</strong> in the header button bar. <code>[SCREENSHOT: Apply Analytic button on the Customer Invoice header]</code></li>
-                    <li>In the pop-up, set the distribution across one or more analytic accounts. <code>[SCREENSHOT: Apply Analytic Distribution pop-up window]</code></li>
+                    <li>Click <strong>Apply Analytic</strong> in the header button bar.</li>
+                    <li>In the pop-up, set the distribution across one or more analytic accounts.</li>
                     <li>Click <strong>Apply</strong>.</li>
                 </ol>
+                <div class="shot">
+                    <img src="assets/screenshots/08_invoice_apply_button.png" alt="Apply Analytic button on the Customer Invoice header">
+                </div>
+                <p class="caption"></p>
+                <div class="shot">
+                    <img src="assets/screenshots/09_invoice_wizard.png" alt="Apply Analytic Distribution pop-up window">
+                </div>
+                <p class="caption"></p>
                 <div class="note warning">
                     Clicking <strong>Apply</strong> overwrites the distribution on every product
                     line on the document, including lines that already had a different one set —
@@ -294,12 +330,24 @@
                 </p>
                 <ol class="steps">
                     <li>Select two or more transactions using the screen's native multi-select
-                        (e.g. Ctrl/Cmd-click, or Shift-click for a range). <code>[SCREENSHOT: Bank Matching kanban with several transactions multi-selected]</code></li>
+                        (e.g. Ctrl/Cmd-click, or Shift-click for a range).</li>
                     <li>Click <strong>Apply Analytic</strong> in the bulk-action toolbar that
                         appears once transactions are selected, alongside the native
-                        <em>Set Partner</em> / <em>Set Account</em> buttons. <code>[SCREENSHOT: Bulk toolbar showing Apply Analytic alongside Set Partner and Set Account]</code></li>
-                    <li>In the pop-up, set the distribution and click <strong>Apply</strong>. <code>[SCREENSHOT: Apply Analytic Distribution pop-up for bank transactions]</code></li>
+                        <em>Set Partner</em> / <em>Set Account</em> buttons.</li>
+                    <li>In the pop-up, set the distribution and click <strong>Apply</strong>.</li>
                 </ol>
+                <div class="shot">
+                    <img src="assets/screenshots/10_bank_multiselect.png" alt="Bank Matching kanban with several transactions multi-selected">
+                </div>
+                <p class="caption"></p>
+                <div class="shot">
+                    <img src="assets/screenshots/11_bank_toolbar.png" alt="Bulk toolbar showing Apply Analytic alongside Set Partner and Set Account">
+                </div>
+                <p class="caption"></p>
+                <div class="shot">
+                    <img src="assets/screenshots/12_bank_wizard.png" alt="Apply Analytic Distribution pop-up for bank transactions">
+                </div>
+                <p class="caption"></p>
 
                 <div class="note warning">
                     <strong>Already-reconciled transactions:</strong> this is applied to the
