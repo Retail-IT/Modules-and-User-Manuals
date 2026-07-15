@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="retailit_stock_inventory_adjustment.InventoryScanner">
+        <div class="o_qt_inventory_scanner">
+            <div class="o_qt_scan_shell">
+                <div class="o_qt_scan_header">
+                    <button class="btn btn-light o_qt_icon_button" t-on-click="onClickBack" title="Back">
+                        <i class="oi oi-chevron-left"/>
+                    </button>
+                    <div class="o_qt_scan_header_text">
+                        <t t-if="state.result &amp;&amp; state.result.can_save">
+                            <div class="o_qt_scan_title o_qt_scan_title_product" t-out="state.result.product_name"/>
+                        </t>
+                        <t t-elif="state.result">
+                            <div class="o_qt_scan_title o_qt_missing_title">Barcode not found</div>
+                        </t>
+                        <t t-else="">
+                            <div class="o_qt_scan_title">Inventory Scanner</div>
+                        </t>
+                        <div t-if="state.result &amp;&amp; state.result.can_save" class="o_qt_scan_subtitle o_qt_result_meta">
+                            <span t-att-class="'o_qt_scan_status ' + sourceClass" t-out="sourceLabel"/>
+                            <span class="o_qt_barcode_text" t-out="state.result.barcode"/>
+                        </div>
+                        <div t-elif="state.result" class="o_qt_scan_subtitle">
+                            <span class="o_qt_barcode_text" t-out="state.result.barcode"/>
+                        </div>
+                        <div t-else="" class="o_qt_scan_subtitle">
+                            <span t-out="inventoryName"/>
+                            <span class="mx-2">/</span>
+                            <span t-out="locationName"/>
+                        </div>
+                    </div>
+                    <button t-if="state.result"
+                            class="btn btn-light o_qt_icon_button"
+                            t-on-click="clearResult"
+                            title="Close">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+
+                <div t-if="state.result" class="o_qt_scan_result">
+                    <t t-if="state.result.can_save">
+                        <div class="o_qt_qty_metrics">
+                            <div>
+                                <span>Theoretical</span>
+                                <strong t-out="state.result.theoretical_qty"/>
+                            </div>
+                            <div>
+                                <span>Current Counted</span>
+                                <strong t-out="state.result.current_qty"/>
+                            </div>
+                        </div>
+
+                        <label class="form-label o_qt_qty_label">New Counted Qty</label>
+                        <input class="form-control o_qt_qty_input"
+                               type="number"
+                               inputmode="decimal"
+                               data-enable-barcode="true"
+                               readonly="readonly"
+                               t-model="state.qty"
+                               t-on-keydown="onQtyKeydown"/>
+
+                        <div class="o_qt_quick_qty_grid">
+                            <button t-foreach="quickQtyAdjustments"
+                                    t-as="adjustment"
+                                    t-key="adjustment.value"
+                                    type="button"
+                                    t-att-class="'btn o_qt_quick_qty_button ' + (adjustment.value > 0 ? 'btn-outline-success' : 'btn-outline-danger')"
+                                    t-att-disabled="state.saving"
+                                    t-on-click="() => this.adjustQty(adjustment.value)">
+                                <t t-out="adjustment.label"/>
+                            </button>
+                        </div>
+
+                        <div class="o_qt_numpad_grid">
+                            <button t-foreach="numpadButtons"
+                                    t-as="button"
+                                    t-key="button.value"
+                                    type="button"
+                                    t-att-class="'btn o_qt_numpad_button ' + (button.type === 'digit' ? 'btn-light' : 'btn-secondary')"
+                                    t-att-disabled="state.saving"
+                                    t-on-click="() => this.onNumpadButton(button)">
+                                <t t-out="button.label"/>
+                            </button>
+                        </div>
+
+                        <div class="o_qt_scan_actions">
+                            <button class="btn btn-light" t-on-click="clearResult">Cancel</button>
+                            <button class="btn btn-primary o_qt_save_button"
+                                    t-on-click="saveQty"
+                                    t-att-disabled="state.saving">
+                                Save Quantity
+                            </button>
+                        </div>
+                    </t>
+
+                    <t t-else="">
+                        <div class="o_qt_missing_message">
+                            <span t-out="state.result.message"/>
+                        </div>
+                        <div class="o_qt_scan_actions">
+                            <button class="btn btn-primary" t-on-click="clearResult">Close</button>
+                        </div>
+                    </t>
+                </div>
+
+                <div t-if="!state.result" class="o_qt_scan_panel">
+                    <label class="form-label o_qt_scan_label">Scan Barcode</label>
+                    <div class="o_qt_scan_input_row">
+                        <input t-ref="barcodeInput"
+                               class="form-control o_qt_barcode_input"
+                               t-model="state.barcode"
+                               t-on-keydown="onBarcodeKeydown"
+                               placeholder="Scan or type barcode"/>
+                        <button class="btn btn-primary o_qt_lookup_button"
+                                t-on-click="lookup"
+                                t-att-disabled="state.loading">
+                            <i class="fa fa-search me-2"/>
+                            Search
+                        </button>
+                    </div>
+                    <BarcodeScanner onBarcodeScanned="(barcode) => this.onBarcodeScanned(barcode)"/>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

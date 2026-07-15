@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inventory Form -->
+    <record id="retailit_stock_inventory_form" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.form</field>
+        <field name="model">retailit.stock.inventory</field>
+        <field name="arch" type="xml">
+            <form js_class="retailit_stock_inventory_form">
+                <header>
+                    <button name="action_start" string="Start Inventory" type="object"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_validate" string="Validate" type="object"
+                            class="btn-primary" invisible="state != 'in_progress'"/>
+                    <button name="action_open_scan" string="Scan" type="object"
+                            class="btn-secondary" icon="fa-barcode"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state in ('done', 'cancel')"/>
+                    <button name="action_draft" string="Return to Draft" type="object"
+                            invisible="state not in ('cancel', 'in_progress')"/>
+                    <button name="action_import_from_cloud" string="Import from Cloud" type="object"
+                            class="btn-secondary" icon="fa-cloud-download"
+                            invisible="state != 'draft'"/>
+                    <button name="action_export_excel" string="Excel" type="object"
+                            class="btn-secondary" icon="fa-file-excel-o"
+                            invisible="state == 'draft'"/>
+                    <button name="action_export_google_sheets" string="Google Sheets" type="object"
+                            class="btn-secondary" icon="fa-google"
+                            invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done"/>
+                </header>
+                <!-- <sheet> -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_lines" type="object" class="oe_stat_button" icon="fa-list"
+                                invisible="line_count == 0">
+                            <field name="line_count" string="Lines" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_shortages" type="object" class="oe_stat_button" icon="fa-minus-circle"
+                                invisible="shortage_count == 0">
+                            <field name="shortage_count" string="Shortages" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_surpluses" type="object" class="oe_stat_button" icon="fa-plus-circle"
+                                invisible="surplus_count == 0">
+                            <field name="surplus_count" string="Surpluses" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_missing_barcodes" type="object" class="oe_stat_button" icon="fa-barcode"
+                                invisible="missing_barcode_count == 0">
+                            <field name="missing_barcode_count" string="Missing Barcodes" widget="statinfo"/>
+                        </button>
+                        <button name="action_view_missed_items" type="object" class="oe_stat_button" icon="fa-exclamation-triangle"
+                                invisible="count_mode != 'full'">
+                            <field name="missed_item_count" string="Missed Items" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Reference"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="location_id" readonly="state != 'draft'"/>
+                            <field name="analytic_account_id"
+                                   readonly="state != 'draft'"
+                                   groups="analytic.group_analytic_accounting"/>
+                            <field name="count_mode" invisible="state != 'draft'" widget="radio"/>
+                            <field name="inventory_type" invisible="state != 'draft'" widget="radio"/>
+                            <field name="import_file" filename="import_filename"
+                                   invisible="inventory_type != 'import'"/>
+                            <field name="import_filename" invisible="1"/>
+                        </group>
+                        <group invisible="state != 'draft'">
+                            <field name="date"/>
+                            <field name="inventory_date"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                            <field name="include_exhausted" invisible="inventory_type in ('import', 'manual', 'cloud')"/>
+                            <field name="prefill_counted" invisible="inventory_type in ('import', 'manual', 'cloud')"/>
+                        </group>
+                    </group>
+                    <group invisible="state != 'draft'">                        
+                        <field name="product_ids" widget="many2many_tags"
+                                invisible="inventory_type != 'partial'"
+                                domain="[('is_storable', '=', True)]"/>
+                        <field name="product_template_ids" widget="many2many_tags"
+                                invisible="inventory_type != 'template'"
+                                domain="[('is_storable', '=', True)]"/>
+                        <field name="categ_id" invisible="inventory_type != 'category'"/>
+                        <field name="lot_id" invisible="inventory_type != 'lot'"/>
+                    </group>
+                    <notebook invisible="state == 'draft'">
+                        <page string="Lines" name="lines">
+                            <field name="visible_line_ids" readonly="state in ['done', 'cancel']">
+                                <list editable="bottom" default_order="was_scanned desc, last_scanned_at desc, id desc">
+                                    <field name="was_scanned" column_invisible="1"/>
+                                    <field name="product_id" decoration-success="was_scanned" decoration-bf="was_scanned"/>
+                                    <field name="location_id"  groups="stock.group_stock_multi_locations"/>
+                                    <field name="lot_id"  groups="stock.group_production_lot" optional="show"/>
+                                    <field name="package_id"  groups="stock.group_tracking_lot" optional="hide"/>
+                                    <field name="owner_id"  groups="stock.group_tracking_owner" optional="hide"/>
+                                    <field name="theoretical_qty"/>
+                                    <field name="product_qty" />
+                                    <field name="count_source" optional="hide"/>
+                                    <field name="is_counted" optional="hide"/>
+                                    <field name="last_scanned_at" optional="hide"/>
+                                    <field name="difference_qty" decoration-danger="difference_qty &lt; 0" decoration-success="difference_qty &gt; 0"/>
+                                    <field name="state" column_invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Shortages" name="shortages">
+                            <field name="shortage_ids" readonly="1">
+                                <list>
+                                    <field name="product_id"/>
+                                    <field name="location_id" groups="stock.group_stock_multi_locations"/>
+                                    <field name="lot_id" groups="stock.group_production_lot"/>
+                                    <field name="theoretical_qty" sum="Total Theoretical"/>
+                                    <field name="product_qty" sum="Total Counted"/>
+                                    <field name="difference_qty" decoration-danger="1" sum="Total Difference"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Surpluses" name="surpluses">
+                            <field name="surplus_ids" readonly="1">
+                                <list>
+                                    <field name="product_id"/>
+                                    <field name="location_id" groups="stock.group_stock_multi_locations"/>
+                                    <field name="lot_id" groups="stock.group_production_lot"/>
+                                    <field name="theoretical_qty" sum="Total Theoretical"/>
+                                    <field name="product_qty" sum="Total Counted"/>
+                                    <field name="difference_qty" decoration-success="1" sum="Total Difference"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Missing Barcodes" name="missing_barcodes">
+                            <field name="missing_barcode_ids" readonly="1">
+                                <list>
+                                    <field name="barcode"/>
+                                    <field name="product_name"/>
+                                    <field name="qty" sum="Total Qty"/>
+                                    <field name="source" widget="badge"
+                                           decoration-info="source == 'rfid'"
+                                           decoration-warning="source == 'scan'"
+                                           decoration-muted="source == 'mixed'"/>
+                                    <field name="occurrence_count" sum="Total Occurrences"/>
+                                    <field name="location_id" groups="stock.group_stock_multi_locations"/>
+                                    <field name="create_date" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Missed Items" name="missed_items" invisible="count_mode != 'full'">
+                            <field name="missed_item_ids" readonly="1">
+                                <list>
+                                    <field name="barcode"/>
+                                    <field name="default_code" optional="show"/>
+                                    <field name="product_id"/>
+                                    <field name="categ_id" optional="show"/>
+                                    <field name="location_id" groups="stock.group_stock_multi_locations"/>
+                                    <field name="theoretical_qty" sum="Total Theoretical"/>
+                                    <field name="create_date" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Scan Logs" name="scan_logs">
+                            <field name="scan_event_ids" readonly="1">
+                                <list>
+                                    <field name="scanned_at"/>
+                                    <field name="barcode"/>
+                                    <field name="product_id"/>
+                                    <field name="event_type"/>
+                                    <field name="match_source"/>
+                                    <field name="previous_qty"/>
+                                    <field name="new_qty"/>
+                                    <field name="user_id"/>
+                                    <field name="message"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Moves" name="moves" invisible="state != 'done'">
+                            <field name="move_ids" readonly="1">
+                                <list>
+                                    <field name="product_id"/>
+                                    <field name="product_uom_qty"/>
+                                    <field name="location_id"/>
+                                    <field name="location_dest_id"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                <!-- </sheet> -->
+            </form>
+        </field>
+    </record>
+
+    <!-- Inventory List -->
+    <record id="retailit_stock_inventory_list" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.list</field>
+        <field name="model">retailit.stock.inventory</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="date"/>
+                <field name="inventory_date"/>
+                <field name="location_id"/>
+                <field name="count_mode"/>
+                <field name="inventory_type"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'done'"
+                       decoration-muted="state == 'cancel'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Inventory Search -->
+    <record id="retailit_stock_inventory_search" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.search</field>
+        <field name="model">retailit.stock.inventory</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="location_id"/>
+                <field name="count_mode"/>
+                <group>
+                    <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                    <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                    <filter name="done" string="Validated" domain="[('state', '=', 'done')]"/>
+                </group>
+                <group>
+                    <filter name="group_location" string="Location" context="{'group_by': 'location_id'}"/>
+                    <filter name="group_count_mode" string="Count Mode" context="{'group_by': 'count_mode'}"/>
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'inventory_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Inventory Line List -->
+    <record id="retailit_stock_inventory_line_list" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.line.list</field>
+        <field name="model">retailit.stock.inventory.line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" default_order="was_scanned desc, last_scanned_at desc, id desc">
+                <field name="was_scanned" column_invisible="1"/>
+                <field name="product_id" decoration-success="was_scanned" decoration-bf="was_scanned"/>
+                <field name="categ_id" optional="hide"/>
+                <field name="location_id" groups="stock.group_stock_multi_locations"/>
+                <field name="lot_id" groups="stock.group_production_lot" optional="show"/>
+                <field name="package_id" groups="stock.group_tracking_lot" optional="hide"/>
+                <field name="owner_id" groups="stock.group_tracking_owner" optional="hide"/>
+                <field name="theoretical_qty"/>
+                <field name="product_qty"/>
+                <field name="count_source" optional="hide"/>
+                <field name="is_counted" optional="hide"/>
+                <field name="last_scanned_at" optional="hide"/>
+                <field name="difference_qty" decoration-danger="difference_qty &lt; 0" decoration-success="difference_qty &gt; 0"/>
+                <field name="state" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Inventory Line Search -->
+    <record id="retailit_stock_inventory_line_search" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.line.search</field>
+        <field name="model">retailit.stock.inventory.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="lot_id" groups="stock.group_production_lot"/>
+                <field name="location_id" groups="stock.group_stock_multi_locations"/>
+                <group>
+                    <filter name="with_diff" string="With Difference" domain="[('difference_qty', '!=', 0)]"/>
+                    <filter name="shortage" string="Shortages" domain="[('difference_qty', '&lt;', 0)]"/>
+                    <filter name="surplus" string="Surpluses" domain="[('difference_qty', '&gt;', 0)]"/>
+                </group>
+                <group>
+                    <filter name="group_product" string="Product" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_categ" string="Category" context="{'group_by': 'categ_id'}"/>
+                    <filter name="group_location" string="Location" context="{'group_by': 'location_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Missing Barcode Views -->
+    <record id="retailit_stock_inventory_missing_barcode_list" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.missing.barcode.list</field>
+        <field name="model">retailit.stock.inventory.missing.barcode</field>
+        <field name="arch" type="xml">
+            <list default_order="create_date desc, barcode">
+                <field name="barcode"/>
+                <field name="product_name"/>
+                <field name="qty" sum="Total Qty"/>
+                <field name="source" widget="badge"
+                       decoration-info="source == 'rfid'"
+                       decoration-warning="source == 'scan'"
+                       decoration-muted="source == 'mixed'"/>
+                <field name="occurrence_count" sum="Total Occurrences"/>
+                <field name="inventory_id"/>
+                <field name="location_id" groups="stock.group_stock_multi_locations"/>
+                <field name="count_mode" optional="show"/>
+                <field name="inventory_state" widget="badge" optional="show"
+                       decoration-info="inventory_state == 'draft'"
+                       decoration-warning="inventory_state == 'in_progress'"
+                       decoration-success="inventory_state == 'done'"
+                       decoration-muted="inventory_state == 'cancel'"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="create_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="retailit_stock_inventory_missing_barcode_form" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.missing.barcode.form</field>
+        <field name="model">retailit.stock.inventory.missing.barcode</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="barcode" readonly="1"/>
+                            <field name="product_name" readonly="1"/>
+                            <field name="qty" readonly="1"/>
+                            <field name="occurrence_count" readonly="1"/>
+                            <field name="source" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="inventory_id" readonly="1"/>
+                            <field name="location_id" readonly="1" groups="stock.group_stock_multi_locations"/>
+                            <field name="count_mode" readonly="1"/>
+                            <field name="inventory_state" readonly="1"/>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="retailit_stock_inventory_missing_barcode_search" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.missing.barcode.search</field>
+        <field name="model">retailit.stock.inventory.missing.barcode</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="barcode"/>
+                <field name="product_name"/>
+                <field name="inventory_id"/>
+                <field name="location_id"/>
+                <group>
+                    <filter name="source_rfid" string="RFID Import" domain="[('source', '=', 'rfid')]"/>
+                    <filter name="source_scan" string="Manual Scan" domain="[('source', '=', 'scan')]"/>
+                    <filter name="source_mixed" string="RFID / Scan" domain="[('source', '=', 'mixed')]"/>
+                </group>
+                <group>
+                    <filter name="group_source" string="Source" context="{'group_by': 'source'}"/>
+                    <filter name="group_inventory" string="Inventory" context="{'group_by': 'inventory_id'}"/>
+                    <filter name="group_location" string="Location" context="{'group_by': 'location_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Missed Item Views -->
+    <record id="retailit_stock_inventory_missed_item_list" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.missed.item.list</field>
+        <field name="model">retailit.stock.inventory.missed.item</field>
+        <field name="arch" type="xml">
+            <list default_order="product_id">
+                <field name="barcode"/>
+                <field name="default_code"/>
+                <field name="product_id"/>
+                <field name="categ_id"/>
+                <field name="location_id" groups="stock.group_stock_multi_locations"/>
+                <field name="theoretical_qty" sum="Total Theoretical"/>
+                <field name="inventory_id"/>
+                <field name="count_mode" optional="hide"/>
+                <field name="inventory_state" widget="badge" optional="show"
+                       decoration-info="inventory_state == 'draft'"
+                       decoration-warning="inventory_state == 'in_progress'"
+                       decoration-success="inventory_state == 'done'"
+                       decoration-muted="inventory_state == 'cancel'"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="create_date" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="retailit_stock_inventory_missed_item_form" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.missed.item.form</field>
+        <field name="model">retailit.stock.inventory.missed.item</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="product_id" readonly="1"/>
+                            <field name="default_code" readonly="1"/>
+                            <field name="barcode" readonly="1"/>
+                            <field name="categ_id" readonly="1"/>
+                            <field name="theoretical_qty" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="inventory_id" readonly="1"/>
+                            <field name="location_id" readonly="1" groups="stock.group_stock_multi_locations"/>
+                            <field name="count_mode" readonly="1"/>
+                            <field name="inventory_state" readonly="1"/>
+                            <field name="company_id" readonly="1" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="retailit_stock_inventory_missed_item_search" model="ir.ui.view">
+        <field name="name">retailit.stock.inventory.missed.item.search</field>
+        <field name="model">retailit.stock.inventory.missed.item</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="barcode"/>
+                <field name="default_code"/>
+                <field name="categ_id"/>
+                <field name="inventory_id"/>
+                <field name="location_id"/>
+                <group>
+                    <filter name="group_product" string="Product" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_category" string="Category" context="{'group_by': 'categ_id'}"/>
+                    <filter name="group_inventory" string="Inventory" context="{'group_by': 'inventory_id'}"/>
+                    <filter name="group_location" string="Location" context="{'group_by': 'location_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_retailit_stock_inventory" model="ir.actions.act_window">
+        <field name="name">Inventory Adjustments</field>
+        <field name="res_model">retailit.stock.inventory</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="retailit_stock_inventory_search"/>
+        <field name="context">{'search_default_in_progress': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create an inventory adjustment
+            </p>
+            <p>
+                Inventory adjustments allow you to correct stock quantities
+                by comparing theoretical quantities with physical counts.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu -->
+    <menuitem id="menu_retailit_stock_inventory"
+              name="Inventory Adjustments"
+              parent="stock.menu_stock_adjustments"
+              action="action_retailit_stock_inventory"
+              sequence="20"
+            />
+
+    <!-- Google Sheets Settings -->
+    <record id="res_config_settings_view_google_sheets" model="ir.ui.view">
+        <field name="name">res.config.settings.view.google.sheets</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='stock']" position="inside">
+                <block title="Google Sheets Integration" name="google_sheets_setting_container">
+                    <setting string="Google OAuth Client ID"
+                             help="The Client ID from your Google Cloud OAuth 2.0 Web Application credentials.">
+                        <field name="google_oauth_client_id"
+                               placeholder="123456789.apps.googleusercontent.com"/>
+                    </setting>
+                    <setting string="Google OAuth Client Secret"
+                             help="The Client Secret from your Google Cloud OAuth 2.0 credentials.">
+                        <field name="google_oauth_client_secret"
+                               placeholder="GOCSPX-..."/>
+                    </setting>
+                    <setting string="Google Drive Folder ID (optional)"
+                             help="If set, exported sheets will be placed inside this Drive folder. Find the ID at the end of the folder URL: drive.google.com/drive/folders/FOLDER_ID">
+                        <field name="google_sheets_folder_id"
+                               placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

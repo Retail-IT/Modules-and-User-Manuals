@@ -1,0 +1,291 @@
+.o_qt_inventory_scanner {
+    min-height: 100%;
+    background: #fff;
+    padding: 0;
+
+    .o_qt_scan_shell {
+        width: 100%;
+        margin: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .o_qt_scan_header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 8px 12px;
+    }
+
+    .o_qt_scan_header_text {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .o_qt_icon_button {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+    }
+
+    .o_qt_scan_title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1f2a37;
+    }
+
+    .o_qt_scan_title_product {
+        display: -webkit-box;
+        overflow: hidden;
+        line-height: 1.18;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .o_qt_scan_subtitle {
+        color: #637083;
+        font-size: 13px;
+    }
+
+    .o_qt_scan_panel,
+    .o_qt_scan_result {
+        border: 1px solid #e1e6ef;
+        border-radius: 8px;
+        margin: 10px 12px;
+        padding: 10px;
+        background: #fbfcfe;
+    }
+
+    .o_qt_scan_label,
+    .o_qt_qty_label {
+        font-weight: 700;
+        color: #253244;
+    }
+
+    .o_qt_scan_input_row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .o_qt_barcode_input {
+        height: 44px;
+        font-size: 17px;
+        font-weight: 600;
+    }
+
+    .o_qt_lookup_button,
+    .o_qt_save_button {
+        min-width: 150px;
+        font-weight: 700;
+    }
+
+    .o_qt_scan_result {
+        background: #fff;
+    }
+
+    .o_qt_result_meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 3px;
+    }
+
+    .o_qt_scan_status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 2px 7px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .o_qt_scan_status_item {
+        color: #115e59;
+        background: #ccfbf1;
+    }
+
+    .o_qt_scan_status_master {
+        color: #1d4ed8;
+        background: #dbeafe;
+    }
+
+    .o_qt_scan_status_missing {
+        color: #991b1b;
+        background: #fee2e2;
+    }
+
+    .o_qt_product_name {
+        font-size: 22px;
+        line-height: 1.25;
+        font-weight: 700;
+        color: #111827;
+        overflow-wrap: anywhere;
+    }
+
+    .o_qt_missing_title {
+        color: #991b1b;
+    }
+
+    .o_qt_barcode_text {
+        font-size: 12px;
+        color: #5b6678;
+        font-weight: 700;
+    }
+
+    .o_qt_qty_metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 8px;
+
+        div {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            border-bottom: 1px solid #e5eaf2;
+            padding: 0 2px 6px;
+        }
+
+        span {
+            font-size: 12px;
+            color: #657184;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        strong {
+            font-size: 18px;
+            color: #111827;
+        }
+    }
+
+    .o_qt_qty_input {
+        height: 58px;
+        font-size: 34px;
+        font-weight: 800;
+        text-align: center;
+    }
+
+    .o_qt_numpad_grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .o_qt_numpad_button {
+        min-height: 42px;
+        border: 1px solid #d5dde8;
+        font-size: 19px;
+        font-weight: 800;
+    }
+
+    .o_qt_quick_qty_grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .o_qt_quick_qty_button {
+        min-height: 36px;
+        border-width: 2px;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .o_qt_scan_actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .o_qt_missing_message {
+        display: grid;
+        gap: 8px;
+        color: #7f1d1d;
+    }
+}
+
+@media (max-width: 576px) {
+    .o_qt_inventory_scanner {
+        .o_qt_scan_panel,
+        .o_qt_scan_result {
+            margin: 8px 10px;
+            padding: 9px;
+        }
+
+        .o_qt_scan_title {
+            font-size: 16px;
+        }
+
+        .o_qt_scan_subtitle {
+            font-size: 12px;
+        }
+
+        .o_qt_product_name {
+            font-size: 18px;
+        }
+
+        .o_qt_scan_input_row {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .o_qt_lookup_button,
+        .o_qt_save_button {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .o_qt_qty_metrics {
+            grid-template-columns: 1fr;
+
+            strong {
+                font-size: 17px;
+            }
+        }
+
+        .o_qt_qty_input {
+            height: 54px;
+            font-size: 32px;
+        }
+
+        .o_qt_numpad_grid {
+            gap: 7px;
+        }
+
+        .o_qt_numpad_button {
+            min-height: 40px;
+            font-size: 18px;
+        }
+
+        .o_qt_quick_qty_grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .o_qt_quick_qty_button {
+            min-height: 36px;
+            font-size: 14px;
+        }
+
+        .o_qt_scan_actions {
+            display: grid;
+            grid-template-columns: 1fr;
+        }
+    }
+}

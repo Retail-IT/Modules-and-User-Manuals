@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_retailit_stock_inventory" model="ir.actions.report">
+        <field name="name">Inventory Adjustment Report</field>
+        <field name="model">retailit.stock.inventory</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">retailit_stock_inventory_adjustment.report_retailit_stock_inventory</field>
+        <field name="report_file">retailit_stock_inventory_adjustment.report_retailit_stock_inventory</field>
+        <field name="binding_model_id" ref="model_retailit_stock_inventory"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

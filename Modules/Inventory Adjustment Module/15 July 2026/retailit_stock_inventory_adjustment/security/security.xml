@@ -1,0 +1,25 @@
+<odoo>
+<!--  Privilege for Inventory Adjustments  -->
+<record model="res.groups.privilege" id="res_groups_privilege_retailit_stock_inventory_adjustment">
+<field name="name">Inventory Adjustments</field>
+<field name="sequence">50</field>
+<field name="category_id" ref="base.module_category_supply_chain"/>
+</record>
+<!--  User Group: Read only  -->
+<record id="group_retailit_stock_inventory_adjustment_user" model="res.groups">
+<field name="name">User</field>
+<field name="sequence">10</field>
+<field name="privilege_id" ref="res_groups_privilege_retailit_stock_inventory_adjustment"/>
+<field name="implied_ids" eval="[(6, 0, [ref('base.group_user')])]"/>
+<field name="comment">The user will be able to view inventory adjustments.</field>
+</record>
+<!--  Manager Group: Full access  -->
+<record id="group_retailit_stock_inventory_adjustment_manager" model="res.groups">
+<field name="name">Manager</field>
+<field name="sequence">20</field>
+<field name="privilege_id" ref="res_groups_privilege_retailit_stock_inventory_adjustment"/>
+<field name="implied_ids" eval="[(4, ref('group_retailit_stock_inventory_adjustment_user'))]"/>
+<field name="comment">The user will have full access to inventories.</field>
+<field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+</record>
+</odoo>

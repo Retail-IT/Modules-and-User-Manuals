@@ -1,0 +1,526 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* retailit_stock_inventory_adjustment
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-31 00:00+0000\n"
+"PO-Revision-Date: 2025-01-31 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish <ES>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model,name:retailit_stock_inventory_adjustment.model_retailit_stock_inventory
+msgid "Inventory Adjustment"
+msgstr "Ajuste de Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model,name:retailit_stock_inventory_adjustment.model_retailit_stock_inventory_line
+msgid "Inventory Adjustment Line"
+msgstr "Línea de Ajuste de Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__name
+msgid "Reference"
+msgstr "Referencia"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "New"
+msgstr "Nuevo"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__date
+msgid "Date"
+msgstr "Fecha"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__inventory_date
+msgid "Counting Date"
+msgstr "Fecha de Conteo"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__state
+msgid "State"
+msgstr "Estado"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__state__draft
+msgid "Draft"
+msgstr "Borrador"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__state__in_progress
+msgid "In Progress"
+msgstr "En Progreso"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__state__done
+msgid "Validated"
+msgstr "Validado"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__state__cancel
+msgid "Cancelled"
+msgstr "Cancelado"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__location_id
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__location_id
+msgid "Location"
+msgstr "Ubicación"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__inventory_type
+msgid "Inventory Type"
+msgstr "Tipo de Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__inventory_type__all
+msgid "All Products"
+msgstr "Todos los Productos"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__inventory_type__partial
+msgid "Selected Products"
+msgstr "Productos Seleccionados"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__inventory_type__category
+msgid "Product Category"
+msgstr "Categoría de Productos"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__inventory_type__lot
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__lot_id
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__lot_id
+msgid "Lot/Serial"
+msgstr "Lote/Serie"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__inventory_type__manual
+msgid "Manual Selection"
+msgstr "Selección Manual"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__inventory_type__import
+msgid "Import from Excel"
+msgstr "Importar desde Excel"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__product_ids
+msgid "Products"
+msgstr "Productos"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__categ_id
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__categ_id
+msgid "Category"
+msgstr "Categoría"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__include_exhausted
+msgid "Include Exhausted Products"
+msgstr "Incluir Productos Agotados"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__prefill_counted
+msgid "Prefill Counted Quantity"
+msgstr "Pre-llenar Cantidad Contada"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__import_file
+msgid "Excel File"
+msgstr "Archivo Excel"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__import_filename
+msgid "File Name"
+msgstr "Nombre de Archivo"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__line_ids
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_form
+msgid "Lines"
+msgstr "Líneas"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__move_ids
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_form
+msgid "Moves"
+msgstr "Movimientos"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__line_count
+msgid "# Lines"
+msgstr "# Líneas"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__shortage_count
+msgid "# Shortages"
+msgstr "# Faltantes"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__surplus_count
+msgid "# Surpluses"
+msgstr "# Sobrantes"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__shortage_ids
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_form
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Shortages"
+msgstr "Faltantes"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__surplus_ids
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_form
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Surpluses"
+msgstr "Sobrantes"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__inventory_id
+msgid "Inventory"
+msgstr "Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__product_id
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Product"
+msgstr "Producto"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__package_id
+msgid "Package"
+msgstr "Paquete"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__owner_id
+msgid "Owner"
+msgstr "Propietario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__theoretical_qty
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Theoretical Qty"
+msgstr "Cantidad Teórica"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__product_qty
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Counted Qty"
+msgstr "Cantidad Contada"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory_line__difference_qty
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Difference"
+msgstr "Diferencia"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_stock_move__retailit_stock_inventory_id
+msgid "Inventory Adjustment"
+msgstr "Ajuste de Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.actions.act_window,name:retailit_stock_inventory_adjustment.action_retailit_stock_inventory
+#: model:ir.ui.menu,name:retailit_stock_inventory_adjustment.menu_retailit_stock_inventory
+msgid "Inventory Adjustments"
+msgstr "Ajustes de Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.actions.report,name:retailit_stock_inventory_adjustment.action_report_retailit_stock_inventory
+msgid "Inventory Adjustment Report"
+msgstr "Reporte de Ajuste de Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:res.groups.privilege,name:retailit_stock_inventory_adjustment.res_groups_privilege_retailit_stock_inventory_adjustment
+msgid "Inventory Adjustments"
+msgstr "Ajustes de Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:res.groups,name:retailit_stock_inventory_adjustment.group_retailit_stock_inventory_adjustment_user
+msgid "User"
+msgstr "Usuario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:res.groups,name:retailit_stock_inventory_adjustment.group_retailit_stock_inventory_adjustment_manager
+msgid "Manager"
+msgstr "Administrador"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:res.groups,comment:retailit_stock_inventory_adjustment.group_retailit_stock_inventory_adjustment_user
+msgid "The user will be able to view inventory adjustments."
+msgstr "El usuario podrá visualizar los ajustes de inventario."
+
+#. module: retailit_stock_inventory_adjustment
+#: model:res.groups,comment:retailit_stock_inventory_adjustment.group_retailit_stock_inventory_adjustment_manager
+msgid "The user will have full access to inventories."
+msgstr "El usuario tendrá acceso completo a los inventarios."
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_form
+msgid "Start Inventory"
+msgstr "Iniciar Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_form
+msgid "Validate"
+msgstr "Validar"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_form
+msgid "Return to Draft"
+msgstr "Regresar a Borrador"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_search
+msgid "With Difference"
+msgstr "Con Diferencia"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.retailit_stock_inventory_search
+msgid "Type"
+msgstr "Tipo"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.actions.act_window,help:retailit_stock_inventory_adjustment.action_retailit_stock_inventory
+msgid "Create an inventory adjustment"
+msgstr "Crear un ajuste de inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.actions.act_window,help:retailit_stock_inventory_adjustment.action_retailit_stock_inventory
+msgid "Inventory adjustments allow you to correct stock quantities by comparing theoretical quantities with physical counts."
+msgstr "Los ajustes de inventario permiten corregir las cantidades de stock comparando cantidades teóricas con conteos físicos."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "An inventory is already in progress for the selected location. Complete it before starting another."
+msgstr "Ya existe un inventario en progreso para la ubicación seleccionada. Finalízalo antes de iniciar otro."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "Only draft inventories can be started."
+msgstr "Solo inventarios en borrador pueden iniciarse."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "pandas library not installed."
+msgstr "Librería pandas no instalada."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "Error reading file: %s"
+msgstr "Error al leer archivo: %s"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "The file must contain CODE and QTY columns."
+msgstr "El archivo debe contener columnas CODE y QTY."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "Only in-progress inventories can be validated."
+msgstr "Solo inventarios en progreso pueden validarse."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "Inventory adjustment location not found."
+msgstr "No se encontró ubicación de ajuste de inventario."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "Cannot cancel a validated inventory."
+msgstr "No se puede cancelar un inventario validado."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "Cannot return to draft."
+msgstr "No se puede regresar a borrador."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "Inventory Lines"
+msgstr "Líneas de Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "You cannot modify inventories when they are Validated or Cancelled."
+msgstr "No puedes modificar inventarios cuando están Validado o Cancelado."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory.py:0
+#, python-format
+msgid "You can only delete inventories in Draft state."
+msgstr "Solo puedes eliminar inventarios en estado Borrador."
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/models/retailit_stock_inventory_line.py:0
+#, python-format
+msgid "You cannot modify lines when the inventory is Validated or Cancelled."
+msgstr "No puedes modificar líneas cuando el inventario está Validado o Cancelado."
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Inventory Adjustment"
+msgstr "Ajuste de Inventario"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Location:"
+msgstr "Ubicación:"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Date:"
+msgstr "Fecha:"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Type:"
+msgstr "Tipo:"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "State:"
+msgstr "Estado:"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "All Lines"
+msgstr "Todas las Líneas"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Theoretical"
+msgstr "Teórico"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Counted"
+msgstr "Contado"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Shortage"
+msgstr "Faltante"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Surplus"
+msgstr "Sobrante"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Total Lines:"
+msgstr "Total Líneas:"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Shortages:"
+msgstr "Faltantes:"
+
+#. module: retailit_stock_inventory_adjustment
+#: model_terms:ir.ui.view,arch_db:retailit_stock_inventory_adjustment.report_retailit_stock_inventory
+msgid "Surpluses:"
+msgstr "Sobrantes:"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "xlsxwriter library is not installed. Please install it with: pip install xlsxwriter"
+msgstr "La librería xlsxwriter no está instalada. Por favor instálela con: pip install xlsxwriter"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "Inventory Adjustment: %s"
+msgstr "Ajuste de Inventario: %s"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "All Lines"
+msgstr "Todas las Líneas"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "Theoretical"
+msgstr "Teórico"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "Counted"
+msgstr "Contado"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "Diff"
+msgstr "Dif"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "Shortages (Missing Stock)"
+msgstr "Faltantes (Stock Faltante)"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "Surpluses (Extra Stock)"
+msgstr "Sobrantes (Stock Extra)"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "Summary"
+msgstr "Resumen"
+
+#. module: retailit_stock_inventory_adjustment
+#: code:addons/retailit_stock_inventory_adjustment/report/inventory_excel_report.py:0
+#, python-format
+msgid "Total Lines:"
+msgstr "Total Líneas:"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields.selection,name:retailit_stock_inventory_adjustment.selection__retailit_stock_inventory__inventory_type__template
+msgid "Product Templates"
+msgstr "Plantillas de Producto"
+
+#. module: retailit_stock_inventory_adjustment
+#: model:ir.model.fields,field_description:retailit_stock_inventory_adjustment.field_retailit_stock_inventory__product_template_ids
+msgid "Product Templates"
+msgstr "Plantillas de Producto"
