@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stock Inventory Adjustment - User Manual</title>
+    <link rel="stylesheet" href="assets/manual.css">
+    <script src="assets/captions.js" defer></script>
+</head>
+<body>
+    <div class="manual">
+        <aside class="sidebar">
+            <img class="logo" src="assets/logo/RIT_Logo_White.png" alt="Retail IT Group logo">
+            <h1>Stock Inventory Adjustment</h1>
+            <p>User manual for physical stock counting, barcode/RFID counting, and multi-channel export.</p>
+            <nav class="toc" aria-label="Table of contents">
+                <a href="#introduction">1. Introduction</a>
+                <a href="#dependencies">2. Dependencies</a>
+                <a href="#configuration">3. Configuration</a>
+                <a href="#google-cloud-setup">4. Google Cloud Console Setup (Optional)</a>
+                <a href="#how-it-works">5. How It Works</a>
+                <a href="#main-flow">6. Main Workflow</a>
+                <a href="#counting-methods">7. Counting Methods</a>
+                <a href="#edge-cases">8. Edge Cases &amp; Resets</a>
+                <a href="#states">9. States and Reasons</a>
+                <a href="#reporting">10. Reporting &amp; Export</a>
+                <a href="#best-practices">11. Best Practices</a>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header class="hero">
+                <h2>Stock Inventory Adjustment User Manual</h2>
+                <p>
+                    Perform stock counts (cycle or full) against Odoo's theoretical quantities, count via manual
+                    entry, a dedicated barcode scanner, Excel/CSV import, or Beyond ID RFID cloud import, then post
+                    the results as accountable stock moves and export them to PDF, Excel, or a live Google Sheet.
+                </p>
+                <div class="meta">
+                    <span class="pill">Inventory Counting</span>
+                    <span class="pill">Barcode &amp; RFID</span>
+                    <span class="pill">Google Sheets Export (Optional)</span>
+                </div>
+            </header>
+
+            <section id="introduction">
+                <h2>1. Introduction</h2>
+                <p class="lead">
+                    This module gives warehouse and retail staff a controlled workflow for recording counted
+                    quantities against theoretical stock, reviewing the resulting shortages and surpluses, and
+                    posting them as real stock moves tagged to an analytic account — with a full audit trail of
+                    every scan, barcode lookup, and missed item along the way.
+                </p>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Main purpose</h3>
+                        <p>Replace ad-hoc stocktaking with a single record per count that tracks scope, counting
+                        method, every individual scan event, and the final adjustment it produces — so a count can
+                        always be reconstructed and audited after the fact.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Operational flow</h3>
+                        <p>Draft (define scope) &rarr; In Progress (count via manual entry, scanner, Excel import,
+                        or Beyond ID cloud import) &rarr; Validate (creates stock moves for every line with a
+                        difference) &rarr; Validated. Only draft inventories can be freely reconfigured; validated
+                        inventories are permanently locked.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="dependencies">
+                <h2>2. Dependencies</h2>
+                <p class="lead">
+                    These are installed and enabled automatically by Odoo's module system when this module is
+                    installed — nothing here needs manual setup, except where noted.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dependency</th>
+                            <th>Type</th>
+                            <th>Required?</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>stock</code></td>
+                            <td>Odoo app</td>
+                            <td>Required</td>
+                            <td>Core inventory/warehouse data model — locations, quants, and stock moves this
+                            module counts against and posts to.</td>
+                        </tr>
+                        <tr>
+                            <td><code>stock_account</code></td>
+                            <td>Odoo app</td>
+                            <td>Required</td>
+                            <td>Accounting valuation layer needed so validated stock moves produce the account
+                            move lines this module tags with an analytic account.</td>
+                        </tr>
+                        <tr>
+                            <td><code>barcodes</code></td>
+                            <td>Odoo app</td>
+                            <td>Required</td>
+                            <td>Provides the barcode scanning service the Scan screen and global barcode listener
+                            hook into.</td>
+                        </tr>
+                        <tr>
+                            <td><code>retailit_beyondid_manager</code></td>
+                            <td>Odoo app (Retail IT custom)</td>
+                            <td>Required to install</td>
+                            <td>Supplies the Beyond ID (AdvanCloud/Keonn) API client. The module cannot be
+                            installed without it, but you only need to actually <em>use</em> it if you do
+                            does Cloud Import from Beyond ID — see that module's manual for connecting an
+                            account.</td>
+                        </tr>
+                        <tr>
+                            <td><code>openpyxl</code></td>
+                            <td>Python package</td>
+                            <td>Required</td>
+                            <td>Reads uploaded Excel workbooks for the Excel/CSV import feature.</td>
+                        </tr>
+                        <tr>
+                            <td><code>xlsxwriter</code></td>
+                            <td>Python package</td>
+                            <td>Required</td>
+                            <td>Builds the Excel export workbook.</td>
+                        </tr>
+                        <tr>
+                            <td>Google Cloud OAuth credentials</td>
+                            <td>External service</td>
+                            <td><strong>Optional</strong></td>
+                            <td>Only needed if you want the Google Sheets export button to work. PDF and
+                            Excel export, counting, scanning, and every other feature in this module work fully
+                            without it.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="note">
+                    Everything in this module is usable out of the box once it's installed — counting, the
+                    scanner, Excel/CSV import, Beyond ID cloud import (once that module is connected), and PDF or
+                    Excel export. Google Sheets export is the one feature that needs deliberate setup, covered in
+                    Sections 3 and 4, and it's entirely opt-in.
+                </div>
+            </section>
+
+            <section id="configuration">
+                <h2>3. Configuration</h2>
+                <div class="note">
+                    <strong>Optional.</strong> Everything below this note is only needed if you want the
+                    <strong>Google Sheets</strong> export button to work. Skip this whole block if you don't —
+                    PDF and Excel export, and every counting feature, work fully with none of it configured.
+                </div>
+                <p>
+                    Open <code>Inventory &rarr; Configuration &rarr; Settings</code> and scroll to the
+                    <strong>Google Sheets Integration</strong> block.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/01_settings.png" alt="Google Sheets Integration settings block in Inventory settings">
+                </div>
+                <p class="caption"></p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Google OAuth Client ID</code></td>
+                            <td>The Client ID from a Google Cloud OAuth 2.0 Web Application credential. Required
+                            before any user can export to Google Sheets.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Google OAuth Client Secret</code></td>
+                            <td>The matching Client Secret for the same OAuth credential.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Google Drive Folder ID (optional)</code></td>
+                            <td>If set, every exported spreadsheet is moved into this Drive folder instead of
+                            landing in the exporting user's personal Drive root. Taken from the end of the folder's
+                            URL: <code>drive.google.com/drive/folders/&lt;FOLDER_ID&gt;</code>.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="note">
+                    These three parameters are stored instance-wide and shared by every user of this Odoo
+                    database. Setting the Client ID and Secret is a one-time admin action; each individual user
+                    still has to grant Google consent once for themselves the first time they click
+                    <strong>Google Sheets</strong> on an inventory.
+                </div>
+
+                <div class="example">
+                    <h3>Example configuration</h3>
+                    <p>You paste the Client ID and Client Secret generated in Google Cloud Console (see
+                    Section 4) into the two OAuth fields, then optionally set a shared Drive Folder ID so every
+                    inventory export from any user ends up in one place your team can find, rather than
+                    scattered across each exporter's own Drive.</p>
+                </div>
+
+                <h3>Access Groups</h3>
+                <p class="lead">
+                    Access is controlled by a dedicated <strong>Inventory Adjustments</strong> privilege
+                    (Supply Chain category) with two groups.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Group</th>
+                            <th>Access</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>User</td>
+                            <td>Read-only on inventories, lines, missing barcodes, missed items, and scan logs.
+                            Full create/read/write/delete on the cloud import wizard itself, since it's a transient
+                            working screen rather than stored inventory data.</td>
+                        </tr>
+                        <tr>
+                            <td>Manager</td>
+                            <td>Full create/read/write/delete on everything the User group can see, including
+                            inventories, lines, missing barcodes, missed items, and scan logs. Implies the User
+                            group.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="google-cloud-setup">
+                <h2>4. Google Cloud Console Setup (Admin, Optional)</h2>
+                <div class="note">
+                    <strong>Optional.</strong> Skip this section entirely if you don't want Google
+                    Sheets export. Nothing else in the module depends on it.
+                </div>
+                <p class="lead">
+                    This is a one-time setup performed outside Odoo, in Google Cloud Console, by whoever
+                    administers your Google account. It only needs to be done once per Odoo instance.
+                </p>
+                <ol class="steps">
+                    <li>In Google Cloud Console, create or select a project dedicated to this integration.</li>
+                    <li>Enable the <strong>Google Sheets API</strong> and <strong>Google Drive API</strong> for
+                    that project, under APIs &amp; Services &rarr; Library.</li>
+                    <li>Configure the OAuth consent screen under APIs &amp; Services &rarr; OAuth consent screen.
+                    Choose "Internal" if you use Google Workspace, or "External" and add each Odoo user's
+                    Google account as a test user while the app remains in "Testing" status.</li>
+                    <li>Create credentials: APIs &amp; Services &rarr; Credentials &rarr; Create Credentials
+                    &rarr; OAuth client ID &rarr; Application type <strong>Web application</strong>.</li>
+                    <li>Add an Authorized redirect URI matching exactly:
+                    <code>{web.base.url}/retailit_stock_inventory_adjustment/google_oauth_callback</code>.
+                    Confirm the exact value of <code>web.base.url</code> first under
+                    <code>Settings &rarr; Technical &rarr; System Parameters</code> — a mismatch here is the most
+                    common cause of a "redirect_uri_mismatch" error from Google.</li>
+                    <li>Copy the generated Client ID and Client Secret into the Odoo settings fields described in
+                    Section 3.</li>
+                    <li>If the consent screen is left in "Testing" status, only the Google accounts explicitly
+                    added as test users can authorize the integration — add every user who will export to Sheets,
+                    or publish the consent screen.</li>
+                </ol>
+                <div class="note warning">
+                    The module only ever requests the <code>spreadsheets</code> and <code>drive.file</code>
+                    scopes — it can create and edit spreadsheets, but it cannot read or modify any other file in
+                    the user's Drive. There is no need to grant broader Drive access when configuring the consent
+                    screen.
+                </div>
+            </section>
+
+            <section id="how-it-works">
+                <h2>5. How It Works</h2>
+                <p>
+                    Every inventory is built around a <code>Location</code>, a <code>Count Mode</code> (Cycle or
+                    Full), and an <code>Inventory Type</code> that determines how its lines get their initial
+                    scope. Once lines exist, the same fields drive every counting method, the shortage/surplus
+                    computation, and what happens on Validate.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field / Data</th>
+                            <th>Source</th>
+                            <th>Rule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>theoretical_qty</code></td>
+                            <td><code>stock.quant</code></td>
+                            <td>Snapshotted onto each line when it's generated or imported — not live. It only
+                            updates again if the line is manually refreshed, or automatically for Full Count
+                            inventories whenever their missed items are recalculated.</td>
+                        </tr>
+                        <tr>
+                            <td><code>difference_qty</code></td>
+                            <td><code>product_qty - theoretical_qty</code></td>
+                            <td>Stored computed field. Negative is a shortage, positive is a surplus.</td>
+                        </tr>
+                        <tr>
+                            <td><code>count_source</code></td>
+                            <td>Set by whichever action wrote the line</td>
+                            <td><code>rfid</code> from Excel/CSV or cloud import, <code>scan</code> from the
+                            barcode scanner, <code>manual</code> the first time a counted quantity is typed
+                            directly into a line, <code>system</code> for Full Count placeholder lines nobody has
+                            counted yet.</td>
+                        </tr>
+                        <tr>
+                            <td><code>is_counted</code></td>
+                            <td>Line <code>write()</code> override</td>
+                            <td>Automatically set to true the first time <code>Counted Qty</code> is edited on an
+                            in-progress line, unless the write is an internal system update (e.g. refreshing a
+                            missed-item placeholder).</td>
+                        </tr>
+                        <tr>
+                            <td><code>missed_item_ids</code></td>
+                            <td>Full Count refresh</td>
+                            <td>Only ever populated when <code>Count Mode = Full</code>. Lists every storable
+                            product with on-hand stock at the location that no line has counted yet.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="main-flow">
+                <h2>6. Main Workflow</h2>
+                <p>
+                    The core lifecycle is the same regardless of which counting method is used to fill in the
+                    quantities.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/02_main_flow.png" alt="Inventory form showing header buttons and the Lines tab">
+                </div>
+                <p class="caption"></p>
+                <ol class="steps">
+                    <li>Create the inventory: set <strong>Location</strong> (must be an internal location),
+                    <strong>Analytic Account</strong>, <strong>Count Mode</strong>, and <strong>Inventory
+                    Type</strong>. The Analytic Account can be set now or any time before Validate.</li>
+                    <li>Click <strong>Start Inventory</strong>. Depending on Inventory Type this generates lines
+                    from current stock quants, imports an uploaded Excel/CSV file, or leaves lines for a cloud
+                    import to have already populated. Only one inventory can be In Progress per location at a
+                    time.</li>
+                    <li>Count using any combination of manual entry, the Scan button, or (for draft inventories
+                    only) Import from Cloud — see Section 7.</li>
+                    <li>Click <strong>Validate</strong>. This requires an Analytic Account, recalculates missed
+                    items one last time, and creates a stock move for every line whose Difference is not zero,
+                    with the Analytic Account applied at 100% to the resulting accounting lines.</li>
+                </ol>
+                <div class="note warning">
+                    Validation is what actually moves stock. There is no separate draft/preview step for the
+                    adjustment itself — review Shortages and Surpluses before clicking Validate.
+                </div>
+            </section>
+
+            <section id="counting-methods">
+                <h2>7. Counting Methods</h2>
+                <p class="lead">
+                    An inventory's lines can be filled in using any mix of the four methods below during the
+                    In Progress state (Cloud Import is draft-only).
+                </p>
+
+                <h3>Manual entry</h3>
+                <p>Edit <strong>Counted Qty</strong> directly in the Lines tab. The first edit to a line
+                automatically sets its Count Source to Manual and marks it Counted.</p>
+
+                <div class="shot">
+                    <img src="assets/screenshots/03_scanner.png" alt="Barcode scanner screen with quantity numpad">
+                </div>
+                <p class="caption"></p>
+
+                <h3>Barcode scanner</h3>
+                <p>The <strong>Scan</strong> header button (visible only while In Progress) opens a dedicated
+                full-screen scanner. Scanning a barcode looks it up first against this inventory's own lines,
+                then against the product master; barcodes matching neither are logged under Missing Barcodes
+                rather than blocking the scan. Entering a quantity and pressing Enter — or using the on-screen
+                numpad or the quick +1/+5/+10/&minus;1/&minus;5/&minus;10 buttons — saves it. Each save locks the
+                specific inventory and line records for that instant, so two devices scanning at once can't
+                overwrite each other's count. Opening the scanner from the header (rather than from a specific
+                barcode) starts continuous-scan mode: after each save the screen resets for the next item, and
+                re-scanning the same barcode that's still on-screen simply bumps the quantity by +1. Scanning a
+                <em>different</em> barcode while one is still unsaved shows a warning instead of switching
+                products, so a count is never left half-entered by accident.</p>
+
+                <h3>Excel / CSV import</h3>
+                <p>Set Inventory Type to <strong>Import from Excel</strong> and upload a file with a
+                <code>code</code> and <code>count</code> column (header matching is case-insensitive) plus an
+                optional <code>name</code> column used only to label unmatched barcodes. CSV files tolerate a
+                UTF-8 byte-order mark. Barcodes are normalized so numeric values don't drift into scientific
+                notation, and duplicate barcodes within the same file are summed rather than overwritten. Every
+                barcode is matched against product barcodes on Start: matches become lines pre-marked as Counted
+                with Count Source RFID; non-matches become Missing Barcode records instead of being silently
+                dropped.</p>
+
+                <div class="shot">
+                    <img src="assets/screenshots/04_cloud_import.png" alt="Import from Beyond ID wizard showing available inventory counts">
+                </div>
+                <p class="caption"></p>
+
+                <h3>Cloud import (Beyond ID)</h3>
+                <p>Set Inventory Type to <strong>Import from Cloud</strong> — only available while the inventory
+                is still Draft. Click <strong>Import from Cloud</strong>, choose the Beyond ID shop, click
+                <strong>Search Inventories</strong> to list that shop's available RFID counts (most recent
+                first), select exactly one, then <strong>Import and Start Inventory</strong>. This pulls the
+                stock rows for that count, matches them by barcode using the same logic as the Excel import, and
+                immediately starts the inventory.</p>
+                <div class="note">
+                    Connecting a Beyond ID (AdvanCloud/Keonn) account and shop is configured separately in the
+                    Beyond ID Manager module — see that module's manual for the connection setup. This section
+                    only covers using an already-connected shop from within a stock count.
+                </div>
+            </section>
+
+            <section id="edge-cases">
+                <h2>8. Edge Cases &amp; Resets</h2>
+                <div class="warning note">
+                    <strong>Return to Draft</strong> deletes all lines, missing barcodes, missed items, and scan
+                    logs for that inventory — it does not just hide them. Export a PDF or Excel snapshot first if
+                    there's any chance you'll want to see what was counted before resetting.
+                </div>
+                <p>The module enforces a number of guardrails to keep counts and their resulting stock moves
+                consistent:</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Situation</th>
+                            <th>What happens</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Starting an inventory when another is already In Progress for the same
+                            location</td>
+                            <td>Blocked with an explicit error. Only one active count per location at a time.</td>
+                        </tr>
+                        <tr>
+                            <td>Clicking Validate without an Analytic Account set</td>
+                            <td>Blocked. It can be set at any earlier stage, but must be present before
+                            Validate.</td>
+                        </tr>
+                        <tr>
+                            <td>Cancelling a Validated inventory</td>
+                            <td>Blocked. Validated inventories are permanent; corrections need a new count.</td>
+                        </tr>
+                        <tr>
+                            <td>Deleting an inventory</td>
+                            <td>Only allowed while still in Draft.</td>
+                        </tr>
+                        <tr>
+                            <td>Editing an inventory or its lines once Validated or Cancelled</td>
+                            <td>Blocked at the record level, not just hidden in the UI.</td>
+                        </tr>
+                        <tr>
+                            <td>A scanned or typed barcode over 64 characters, or containing whitespace</td>
+                            <td>Rejected as invalid before it reaches the count.</td>
+                        </tr>
+                        <tr>
+                            <td>A negative quantity entered in the scanner</td>
+                            <td>Rejected.</td>
+                        </tr>
+                        <tr>
+                            <td>Full Count: a storable product with on-hand stock at the location that nobody
+                            counted</td>
+                            <td>Automatically listed under Missed Items and mirrored into Lines/Shortages as a
+                            system-owned line at qty 0 — a full count can't be validated without either counting
+                            it or knowingly accepting the resulting shortage.</td>
+                        </tr>
+                        <tr>
+                            <td>Cycle Count: a product nobody counted</td>
+                            <td>Simply left out of the count. No missed-item shortage is created for it.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="states">
+                <h2>9. States and Reasons</h2>
+                <p>An inventory moves through four states over its lifecycle.</p>
+                <div class="status-list">
+                    <div class="status"><strong>Draft</strong><small>Scope being defined. Fully editable, freely deletable.</small></div>
+                    <div class="status"><strong>In Progress</strong><small>Lines exist and are being counted via any method.</small></div>
+                    <div class="status"><strong>Validated</strong><small>Stock moves posted for every line with a difference. Permanently locked.</small></div>
+                    <div class="status"><strong>Cancelled</strong><small>Abandoned before validation. Can be returned to Draft (which wipes its lines).</small></div>
+                </div>
+                <p class="lead">Each line also carries a Count Source, which explains where its quantity came
+                from rather than why it differs:</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Count Source</th>
+                            <th>Meaning</th>
+                            <th>Typical action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>rfid</code></td>
+                            <td>Populated by an Excel/CSV or Beyond ID cloud import.</td>
+                            <td>Trust as-is unless spot-checking; recount manually if it looks suspect.</td>
+                        </tr>
+                        <tr>
+                            <td><code>scan</code></td>
+                            <td>Entered through the barcode scanner screen.</td>
+                            <td>Check the Scan Logs tab if the quantity looks wrong — every scan and save is
+                            recorded there with who, when, and the previous value.</td>
+                        </tr>
+                        <tr>
+                            <td><code>manual</code></td>
+                            <td>Typed directly into the Counted Qty column.</td>
+                            <td>No special action; treat as a deliberate count.</td>
+                        </tr>
+                        <tr>
+                            <td><code>system</code></td>
+                            <td>A Full Count placeholder for a product nobody has counted yet — not a real
+                            count.</td>
+                            <td>Count it for real, or knowingly accept it as a shortage before validating.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="reporting">
+                <h2>10. Reporting &amp; Export</h2>
+                <p>Three export options appear as header buttons once an inventory leaves Draft. PDF and Excel
+                always work; Google Sheets is the one optional path and only works once Sections 3 and 4 above
+                have been configured.</p>
+                <div class="shot">
+                    <img src="assets/screenshots/05_reporting.png" alt="Header export buttons: Excel, Google Sheets, and Print">
+                </div>
+                <p class="caption"></p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Option</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>PDF</td>
+                            <td>Available from the Print menu. Same layout and grouping as the Excel export.
+                            Requires no external configuration.</td>
+                        </tr>
+                        <tr>
+                            <td>Excel</td>
+                            <td>Header button. Generates a two-sheet workbook: a main sheet with all lines grouped
+                            by location plus dedicated Shortages/Surpluses/Summary sections, and a separate
+                            sortable "Variance Report" sheet listing only lines with a difference. Downloads
+                            immediately; no Google configuration needed.</td>
+                        </tr>
+                        <tr>
+                            <td>Google Sheets <em>(Optional)</em></td>
+                            <td>Header button. The first click by any given user redirects to Google's consent
+                            screen using the OAuth client configured in Section 3. Once authorized, a new
+                            spreadsheet is created with the same two-sheet structure as the Excel export
+                            (color-formatted to match), moved into the configured Drive folder if one is set, and
+                            opened in a new tab.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="note">
+                    Google tokens are stored per individual user, not per company, and refresh automatically. Once
+                    a user grants access they won't be prompted again unless they revoke it themselves from their
+                    Google Account's Security &rarr; Third-party access page.
+                </div>
+            </section>
+
+            <section id="best-practices">
+                <h2>11. Best Practices</h2>
+                <ol class="steps">
+                    <li>Match the count mode to the goal: use <strong>Full Count</strong> for scheduled or annual
+                    stocktakes where every discrepancy must be accounted for before it's accepted — the module
+                    will refuse to let anything slip through unnoticed. Use <strong>Cycle Count</strong> for spot
+                    checks on a subset of products, where untouched stock should simply be left alone.</li>
+                    <li>Set the Analytic Account when creating the inventory, not just before validating. Picking
+                    it upfront avoids a blocked Validate step after a long count and keeps cost postings
+                    consistent across similar counts.</li>
+                    <li>Review the Shortages and Surpluses tabs before clicking Validate. Validation immediately
+                    creates real stock moves — there is no draft or preview state for the adjustment itself, so
+                    treat Validate as the point of no return.</li>
+                    <li>For scanner-based counts, resolve each unsaved product — save or cancel it — before
+                    scanning the next barcode rather than rapid-firing scans. Open the scanner from the header
+                    button (not from a specific line) to get continuous-scan mode, where repeat scans of the same
+                    item simply increment its quantity.</li>
+                    <li>Before a large Excel/CSV or Beyond ID cloud import, register any new products' barcodes in
+                    Odoo first. Unmatched barcodes land in Missing Barcodes rather than blocking the import, but a
+                    count full of missing rows isn't telling you much about actual stock accuracy.</li>
+                    <li>Treat Return to Draft as a hard reset, not a pause. Export a PDF or Excel snapshot first
+                    if there's any chance you'll want a record of what was counted before the reset wipes lines,
+                    scan logs, and missed items.</li>
+                    <li>If you use the optional Google Sheets export, don't grant more Drive access
+                    than the module requests when configuring the OAuth consent screen. It only ever asks for the
+                    Sheets scope and the ability to manage files it creates itself — there's no reason to widen
+                    that.</li>
+                    <li>If Google Sheets export is enabled and the OAuth consent screen is left in "Testing"
+                    status, add every user who will export to Sheets as a test user, or their first export
+                    attempt will fail at Google's consent screen rather than in Odoo.</li>
+                    <li>Reserve the Manager group for whoever owns a count's outcome — they can edit and delete
+                    draft inventories. Give counting staff the User group so they can view records and act through
+                    the scanner and lines without being able to quietly delete an inventory.</li>
+                </ol>
+            </section>
+        </main>
+    </div>
+
+    <div class="lightbox-overlay" id="lightbox">
+        <button class="lightbox-close" aria-label="Close">&times;</button>
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
+    <script>
+        (function () {
+            const overlay = document.getElementById('lightbox');
+            const overlayImg = document.getElementById('lightbox-img');
+            document.querySelectorAll('.shot img').forEach(function (img) {
+                img.addEventListener('click', function () {
+                    overlayImg.src = img.src;
+                    overlayImg.alt = img.alt;
+                    overlay.classList.add('open');
+                });
+            });
+            overlay.addEventListener('click', function () {
+                overlay.classList.remove('open');
+                overlayImg.src = '';
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    overlay.classList.remove('open');
+                    overlayImg.src = '';
+                }
+            });
+
+            // Auto-fill captions from assets/captions.js
+            if (typeof MANUAL_CAPTIONS !== 'undefined') {
+                document.querySelectorAll('.shot').forEach(function (shot) {
+                    const img = shot.querySelector('img');
+                    const captionEl = shot.nextElementSibling;
+                    if (!img || !captionEl || !captionEl.classList.contains('caption')) return;
+                    const filename = img.getAttribute('src').split('/').pop();
+                    const text = MANUAL_CAPTIONS[filename];
+                    captionEl.textContent = text || '';
+                    captionEl.style.display = text ? '' : 'none';
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
