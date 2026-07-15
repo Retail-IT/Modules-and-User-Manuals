@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<record id="view_pos_config_form_retailit_analytic_document_manager" model="ir.ui.view">
+<field name="name">pos.config.form.analytic.document.manager</field>
+<field name="model">pos.config</field>
+<field name="inherit_id" ref="point_of_sale.pos_config_view_form"/>
+<field name="arch" type="xml">
+<xpath expr="//setting[@id='other_devices']" position="before">
+<setting id="retailit_pos_analytic_distribution_setting" string="Analytic Distribution" help="Default analytic split applied to orders from this point of sale. Flows into invoices and session journal entries." groups="analytic.group_analytic_accounting">
+<field name="analytic_distribution" widget="analytic_distribution" groups="analytic.group_analytic_accounting"/>
+<field name="analytic_precision" invisible="1"/>
+</setting>
+</xpath>
+</field>
+</record>
+
+</odoo>

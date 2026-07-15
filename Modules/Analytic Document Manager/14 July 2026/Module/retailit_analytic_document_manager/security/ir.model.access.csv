@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_retailit_analytic_website_mapping_settings,retailit.analytic.website.mapping.settings,model_retailit_analytic_website_mapping,base.group_system,1,1,1,1
+access_retailit_analytic_website_mapping_user,retailit.analytic.website.mapping.user,model_retailit_analytic_website_mapping,base.group_user,1,0,0,0
+access_retailit_analytic_distribution_wizard_user,retailit.analytic.distribution.wizard.user,model_retailit_analytic_distribution_wizard,base.group_user,1,1,1,1
+access_retailit_analytic_distribution_move_wizard_user,retailit.analytic.distribution.move.wizard.user,model_retailit_analytic_distribution_move_wizard,base.group_user,1,1,1,1

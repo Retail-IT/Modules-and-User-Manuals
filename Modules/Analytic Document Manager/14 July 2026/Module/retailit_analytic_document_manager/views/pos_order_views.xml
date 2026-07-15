@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<!-- Order form: distribution column on the order lines list -->
+<record id="view_pos_order_form_retailit_analytic_document_manager" model="ir.ui.view">
+<field name="name">pos.order.form.analytic.document.manager</field>
+<field name="model">pos.order</field>
+<field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+<field name="arch" type="xml">
+<xpath expr="//field[@name='lines']//list//field[@name='price_subtotal']" position="before">
+<field name="analytic_distribution" widget="analytic_distribution" optional="hide" groups="analytic.group_analytic_accounting"/>
+</xpath>
+</field>
+</record>
+
+<!-- Standalone order line list view -->
+<record id="view_pos_order_line_list_retailit_analytic_document_manager" model="ir.ui.view">
+<field name="name">pos.order.line.list.analytic.document.manager</field>
+<field name="model">pos.order.line</field>
+<field name="inherit_id" ref="point_of_sale.view_pos_order_line"/>
+<field name="arch" type="xml">
+<xpath expr="//field[@name='price_subtotal']" position="before">
+<field name="analytic_distribution" widget="analytic_distribution" optional="hide" groups="analytic.group_analytic_accounting"/>
+</xpath>
+</field>
+</record>
+
+<!-- Standalone order line form view -->
+<record id="view_pos_order_line_form_retailit_analytic_document_manager" model="ir.ui.view">
+<field name="name">pos.order.line.form.analytic.document.manager</field>
+<field name="model">pos.order.line</field>
+<field name="inherit_id" ref="point_of_sale.view_pos_order_line_form"/>
+<field name="arch" type="xml">
+<xpath expr="//field[@name='discount']" position="after">
+<field name="analytic_distribution" widget="analytic_distribution" groups="analytic.group_analytic_accounting"/>
+</xpath>
+</field>
+</record>
+
+</odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<record id="retailit_product_category_form_view" model="ir.ui.view">
+    <field name="name">retailit.product.category.form.inherit.category.code</field>
+    <field name="model">product.category</field>
+    <field name="inherit_id" ref="product.product_category_form_view"/>
+    <field name="arch" type="xml">
+        <field name="parent_id" position="before">
+            <field name="category_code"/>
+        </field>
+    </field>
+</record>
+</odoo>

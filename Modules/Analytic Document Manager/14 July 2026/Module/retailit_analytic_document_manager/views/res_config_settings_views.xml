@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<record id="view_res_config_settings_form_retailit_analytic_document_manager" model="ir.ui.view">
+<field name="name">res.config.settings.form.analytic.document.manager</field>
+<field name="model">res.config.settings</field>
+<field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+<field name="arch" type="xml">
+<xpath expr="//block[@id='pos_connected_devices_section']" position="inside">
+<setting id="retailit_pos_analytic_distribution_config" string="Analytic Distribution" help="Assign analytic accounts to POS revenue for this configuration." groups="analytic.group_analytic_accounting">
+<field name="pos_analytic_distribution" widget="analytic_distribution" groups="analytic.group_analytic_accounting"/>
+<field name="analytic_precision" invisible="1"/>
+</setting>
+</xpath>
+</field>
+</record>
+
+</odoo>

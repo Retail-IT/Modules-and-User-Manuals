@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <function model="product.product" name="_beyondid_cleanup_unsendable_pending_products"/>
+</odoo>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="retailit_action_generate_internal_reference_from_variant" model="ir.actions.server">
+        <field name="name">Generate Internal Reference</field>
+        <field name="model_id" ref="product.model_product_product"/>
+        <field name="binding_model_id" ref="product.model_product_product"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+            records.action_generate_template_internal_reference()
+        </field>
+    </record>
+
+    <record id="retailit_action_generate_internal_reference" model="ir.actions.server">
+        <field name="name">Generate Internal Reference</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="state">code</field>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="code">
+            records.action_generate_skus()
+        </field>
+    </record>
+</odoo>

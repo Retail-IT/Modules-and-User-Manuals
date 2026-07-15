@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="retailit_beyondid_product_sync.InitialLoadProgress">
+        <div class="o_beyondid_initial_load_progress">
+            <div class="o_beyondid_initial_load_progress_header">
+                <div>
+                    <h2>Beyond ID Initial Product Load</h2>
+                    <div class="o_beyondid_initial_load_progress_subtitle">
+                        <span t-att-class="statusClass" t-esc="state.phase"/>
+                    </div>
+                </div>
+                <div class="o_beyondid_initial_load_progress_actions">
+                    <button class="btn btn-secondary" t-on-click="openIssues" t-att-disabled="isRunning">View Issues</button>
+                    <button class="btn btn-primary" t-on-click="openLoad" t-att-disabled="isRunning">Open Load</button>
+                </div>
+            </div>
+
+            <div class="o_beyondid_initial_load_progress_body">
+                <section class="o_beyondid_initial_load_progress_main">
+                    <div class="o_beyondid_initial_load_progress_status">
+                        <div>
+                            <div class="o_beyondid_initial_load_progress_label">Current Process</div>
+                            <div class="o_beyondid_initial_load_progress_message" t-esc="state.message"/>
+                        </div>
+                        <div class="o_beyondid_initial_load_progress_percent">
+                            <span t-esc="state.percent"/>%
+                        </div>
+                    </div>
+
+                    <div class="progress o_beyondid_initial_load_progress_bar" role="progressbar"
+                         t-att-aria-valuenow="state.percent" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" t-att-style="progressStyle"/>
+                    </div>
+
+                    <div class="o_beyondid_initial_load_progress_steps">
+                        <div>
+                            <span class="o_beyondid_initial_load_progress_step_label">Batch</span>
+                            <strong>
+                                <t t-esc="state.currentBatch"/> / <t t-esc="state.totalBatches"/>
+                            </strong>
+                        </div>
+                        <div>
+                            <span class="o_beyondid_initial_load_progress_step_label">Valid Products</span>
+                            <strong t-esc="state.totalValid"/>
+                        </div>
+                        <div>
+                            <span class="o_beyondid_initial_load_progress_step_label">API Calls</span>
+                            <strong t-esc="state.apiCalls"/>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="o_beyondid_initial_load_progress_totals">
+                    <div class="o_beyondid_initial_load_total">
+                        <span>Total</span>
+                        <strong t-esc="state.totalProducts"/>
+                    </div>
+                    <div class="o_beyondid_initial_load_total">
+                        <span>Sent</span>
+                        <strong t-esc="state.totalSent"/>
+                    </div>
+                    <div class="o_beyondid_initial_load_total o_beyondid_initial_load_total_success">
+                        <span>Imported</span>
+                        <strong t-esc="state.totalImported"/>
+                    </div>
+                    <div class="o_beyondid_initial_load_total o_beyondid_initial_load_total_danger">
+                        <span>Failed</span>
+                        <strong t-esc="state.totalFailed"/>
+                    </div>
+                    <div class="o_beyondid_initial_load_total o_beyondid_initial_load_total_warning">
+                        <span>Unconfirmed</span>
+                        <strong t-esc="state.totalUnconfirmed"/>
+                    </div>
+                    <div class="o_beyondid_initial_load_total">
+                        <span>Skipped</span>
+                        <strong t-esc="state.totalSkipped"/>
+                    </div>
+                </section>
+
+                <section class="o_beyondid_initial_load_progress_log">
+                    <div class="o_beyondid_initial_load_progress_log_title">Activity</div>
+                    <div class="o_beyondid_initial_load_progress_log_entries">
+                        <t t-if="state.log.length">
+                            <t t-foreach="state.log" t-as="item" t-key="item.id">
+                                <div class="o_beyondid_initial_load_progress_log_line">
+                                    <span t-esc="item.timestamp"/>
+                                    <p t-esc="item.message"/>
+                                </div>
+                            </t>
+                        </t>
+                        <div t-else="" class="o_beyondid_initial_load_progress_log_empty">
+                            Waiting for the first import event.
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </t>
+</templates>

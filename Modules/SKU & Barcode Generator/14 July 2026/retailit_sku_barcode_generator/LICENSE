@@ -1,0 +1,36 @@
+RETAIL IT PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) Retail IT. All rights reserved.
+
+This module ("Software") is proprietary software developed by Retail IT.
+
+1. GRANT OF LICENSE
+   Retail IT grants the deployed client a non-exclusive, non-transferable
+   license to install, use, and run this Software solely within the
+   client's own Odoo environment(s) for which it was delivered.
+
+2. RESTRICTIONS
+   The client may not, and may not permit any third party to:
+   - Redistribute, sublicense, sell, lease, or otherwise make the
+     Software available to any third party without Retail IT's prior
+     written consent.
+   - Reverse engineer, decompile, or disassemble the Software except to
+     the extent such restriction is prohibited by applicable law.
+   - Remove or alter any proprietary notices or labels on the Software.
+
+3. OWNERSHIP
+   Retail IT retains all right, title, and interest in and to the
+   Software, including all intellectual property rights therein. No
+   rights are granted to the client other than those expressly set out
+   in this license.
+
+4. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+   NONINFRINGEMENT. IN NO EVENT SHALL RETAIL IT BE LIABLE FOR ANY CLAIM,
+   DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+
+5. TERMINATION
+   This license terminates automatically if the client fails to comply
+   with any of its terms.

@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="retailit_view_beyondid_product_full_resync_wizard_form" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.full.resync.wizard.form</field>
+        <field name="model">retailit.beyondid.product.full.resync.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reset Products for Full Resync">
+                <sheet>
+                    <group>
+                        <field name="reset_scope"/>
+                        <field name="selected_product_count" invisible="reset_scope != 'selected'"/>
+                    </group>
+                    <group>
+                        <group string="Products to Reset">
+                            <field name="eligible_product_count"/>
+                            <field name="already_pending_count"/>
+                            <field name="previously_synced_count"/>
+                        </group>
+                        <group string="Excluded Products">
+                            <field name="missing_barcode_count"/>
+                            <field name="duplicate_barcode_count"/>
+                            <field name="missing_name_count"/>
+                            <field name="archived_product_count"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="confirm_full_resync"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_reset_products" type="object" string="Reset Products"
+                            class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="retailit_action_beyondid_product_full_resync_wizard" model="ir.actions.act_window">
+        <field name="name">Reset Products for Full Resync</field>
+        <field name="res_model">retailit.beyondid.product.full.resync.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_sync_list" model="ir.ui.view">
+        <field name="name">beyondid.product.sync.product.list</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <list string="Beyond ID Product Sync" create="0" delete="0" multi_edit="0"
+                  default_order="beyondid_sync_state, write_date desc"
+                  decoration-success="beyondid_sync_state == 'synced'"
+                  decoration-warning="beyondid_sync_state in ['warning', 'unconfirmed']"
+                  decoration-danger="beyondid_sync_state == 'failed'"
+                  decoration-muted="beyondid_sync_state == 'skipped'">
+                <header>
+                    <button name="action_beyondid_sync_selected" type="object" string="Sync Selected"
+                            class="btn-primary" groups="stock.group_stock_manager"/>
+                    <button name="%(retailit_action_beyondid_product_full_resync_wizard)d" type="action"
+                            string="Reset Selected" context="{'reset_selected_only': True}"
+                            groups="stock.group_stock_manager"/>
+                    <button name="action_beyondid_view_sync_history" type="object" string="View Sync History"/>
+                </header>
+                <field name="display_name" string="Product" readonly="1"/>
+                <field name="product_template_variant_value_ids" string="Variant" widget="many2many_tags"
+                       groups="product.group_product_variant" readonly="1" optional="show"/>
+                <field name="barcode" readonly="1" optional="show"/>
+                <field name="default_code" string="Internal Reference" readonly="1" optional="show"/>
+                <field name="lst_price" string="Sales Price" readonly="1" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" readonly="1" optional="hide"/>
+                <field name="active" readonly="1" optional="hide"/>
+                <field name="beyondid_sync_state" string="Sync Status" widget="badge" readonly="1"
+                       decoration-success="beyondid_sync_state == 'synced'"
+                       decoration-warning="beyondid_sync_state in ['warning', 'unconfirmed']"
+                       decoration-danger="beyondid_sync_state == 'failed'"
+                       decoration-muted="beyondid_sync_state == 'skipped'"
+                       decoration-info="beyondid_sync_state in ['pending', 'processing']"/>
+                <field name="beyondid_sync_reason" string="Issue Reason" readonly="1" optional="hide"/>
+                <field name="beyondid_needs_sync" readonly="1" optional="hide"/>
+                <field name="beyondid_last_sync_date" readonly="1" optional="show"/>
+                <field name="beyondid_last_warning" readonly="1" optional="hide"/>
+                <field name="beyondid_last_error" readonly="1" optional="show"/>
+                <field name="beyondid_external_productid" readonly="1" optional="hide"/>
+                <field name="beyondid_external_skuid" readonly="1" optional="hide"/>
+                <field name="beyondid_last_run_id" readonly="1" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_sync_form" model="ir.ui.view">
+        <field name="name">beyondid.product.sync.product.form</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <form string="Beyond ID Product Sync" duplicate="false">
+                <header>
+                    <button name="action_beyondid_sync_selected" type="object" string="Sync Now"
+                            class="btn-primary" groups="stock.group_stock_manager"/>
+                    <field name="beyondid_sync_state" string="Sync Status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_beyondid_view_issues" type="object" class="oe_stat_button"
+                                icon="fa-exclamation-triangle" invisible="beyondid_issue_count == 0">
+                            <field name="beyondid_issue_count" widget="statinfo" string="Issues"/>
+                        </button>
+                        <button name="action_beyondid_view_sync_history" type="object" class="oe_stat_button"
+                                icon="fa-clock-o">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Sync History</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="display_name" string="Product"/>
+                        <h1><field name="display_name" readonly="1"/></h1>
+                        <field name="product_template_attribute_value_ids" widget="many2many_tags"
+                               readonly="1" groups="product.group_product_variant"/>
+                    </div>
+                    <group>
+                        <group string="Product">
+                            <field name="product_tmpl_id" readonly="1"/>
+                            <field name="barcode" readonly="1"/>
+                            <field name="default_code" string="Internal Reference" readonly="1"/>
+                            <field name="lst_price" string="Sales Price" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                        </group>
+                        <group string="Beyond ID">
+                            <field name="beyondid_sync_state" string="Sync Status" readonly="1"/>
+                            <field name="beyondid_sync_reason" string="Issue Reason" readonly="1"/>
+                            <field name="beyondid_needs_sync" readonly="1"/>
+                            <field name="beyondid_last_operation" readonly="1"/>
+                            <field name="beyondid_last_sync_date" readonly="1"/>
+                            <field name="beyondid_last_sync_attempt_date" readonly="1"/>
+                            <field name="beyondid_external_productid" readonly="1"/>
+                            <field name="beyondid_external_skuid" readonly="1"/>
+                            <field name="beyondid_last_code" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Messages">
+                            <group>
+                                <field name="beyondid_last_warning" readonly="1"/>
+                                <field name="beyondid_last_error" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Technical">
+                            <group>
+                                <field name="beyondid_last_payload_hash" readonly="1"/>
+                                <field name="beyondid_last_run_id" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_sync_search" model="ir.ui.view">
+        <field name="name">beyondid.product.sync.product.search</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <search string="Beyond ID Product Sync">
+                <field name="display_name"/>
+                <field name="barcode"/>
+                <field name="default_code"/>
+                <field name="beyondid_external_productid"/>
+                <field name="beyondid_external_skuid"/>
+                <filter name="needs_attention" string="Needs Attention"
+                        domain="[('beyondid_sync_state', 'in', ['pending', 'warning', 'failed', 'skipped'])]"/>
+                <filter name="synced" string="Synced" domain="[('beyondid_sync_state','=','synced')]"/>
+                <filter name="pending" string="Pending" domain="[('beyondid_sync_state','=','pending')]"/>
+                <filter name="warning" string="Warnings" domain="[('beyondid_sync_state','=','warning')]"/>
+                <filter name="unconfirmed" string="Unconfirmed" domain="[('beyondid_sync_state','=','unconfirmed')]"/>
+                <filter name="failed" string="Failed" domain="[('beyondid_sync_state','=','failed')]"/>
+                <filter name="skipped" string="Skipped" domain="[('beyondid_sync_state','=','skipped')]"/>
+                <filter name="missing_barcode" string="Missing Barcode"
+                        domain="[('beyondid_sync_reason','=','missing_barcode')]"/>
+                <filter name="duplicate_barcode" string="Duplicate Barcode"
+                        domain="[('beyondid_sync_reason','=','duplicate_barcode')]"/>
+                <filter name="api_error" string="API Errors"
+                        domain="[('beyondid_sync_reason','=','api_error')]"/>
+                <filter name="validation_error" string="Validation Errors"
+                        domain="[('beyondid_sync_reason','=','validation_error')]"/>
+                <filter name="needs_sync" string="Needs Sync" domain="[('beyondid_needs_sync','=',True)]"/>
+                <separator/>
+                <filter name="group_by_state" string="State" context="{'group_by':'beyondid_sync_state'}"/>
+                <filter name="group_by_reason" string="Reason" context="{'group_by':'beyondid_sync_reason'}"/>
+                <filter name="group_by_category" string="Category" context="{'group_by':'categ_id'}"/>
+                <filter name="group_by_last_sync" string="Last Sync" context="{'group_by':'beyondid_last_sync_date'}"/>
+                <searchpanel>
+                    <field name="beyondid_sync_state" string="Sync Status" icon="fa-tasks" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="retailit_action_beyondid_product_sync" model="ir.actions.act_window">
+        <field name="name">Product Sync</field>
+        <field name="res_model">product.product</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('retailit_view_beyondid_product_sync_list')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('retailit_view_beyondid_product_sync_form')})]"/>
+        <field name="search_view_id" ref="retailit_view_beyondid_product_sync_search"/>
+        <field name="domain">[('active', '=', True), ('product_tmpl_id.active', '=', True)]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No products match the current filters</p>
+            <p>Use the filters on the left to review Beyond ID product synchronization status.</p>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_sync_run_list" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.sync.run.list</field>
+        <field name="model">retailit.beyondid.product.sync.run</field>
+        <field name="arch" type="xml">
+            <list string="Beyond ID Sync History" create="0" delete="0"
+                  default_order="started_at desc"
+                  decoration-success="state == 'done'"
+                  decoration-warning="state == 'warning'"
+                  decoration-danger="state == 'failed'">
+                <field name="name"/>
+                <field name="execution_type"/>
+                <field name="operation"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state == 'warning'"
+                       decoration-danger="state == 'failed'"
+                       decoration-info="state == 'running'"/>
+                <field name="started_at"/>
+                <field name="finished_at"/>
+                <field name="duration"/>
+                <field name="api_duration" optional="show"/>
+                <field name="auth_duration" optional="hide"/>
+                <field name="odoo_prepare_duration" optional="hide"/>
+                <field name="odoo_apply_duration" optional="hide"/>
+                <field name="total_evaluated"/>
+                <field name="total_sent"/>
+                <field name="total_synced"/>
+                <field name="total_warnings"/>
+                <field name="total_failed"/>
+                <field name="total_skipped"/>
+                <field name="total_no_changes"/>
+                <field name="total_reset" optional="show"/>
+                <field name="api_calls"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_sync_run_form" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.sync.run.form</field>
+        <field name="model">retailit.beyondid.product.sync.run</field>
+        <field name="arch" type="xml">
+            <form string="Beyond ID Sync History" create="0" edit="0" delete="0">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_issues" type="object" class="oe_stat_button"
+                                icon="fa-exclamation-triangle" invisible="issue_count == 0">
+                            <field name="issue_count" widget="statinfo" string="Issues"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Execution">
+                            <field name="execution_type"/>
+                            <field name="operation"/>
+                            <field name="started_at"/>
+                            <field name="finished_at"/>
+                            <field name="duration"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group string="Timing">
+                            <field name="odoo_prepare_duration"/>
+                            <field name="auth_duration"/>
+                            <field name="api_duration"/>
+                            <field name="odoo_apply_duration"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Totals">
+                            <field name="total_evaluated"/>
+                            <field name="total_sent"/>
+                            <field name="total_synced"/>
+                            <field name="total_warnings"/>
+                            <field name="total_failed"/>
+                            <field name="total_skipped"/>
+                            <field name="total_no_changes"/>
+                            <field name="total_reset"/>
+                            <field name="api_calls"/>
+                        </group>
+                    </group>
+                    <group string="Error" invisible="not error_message">
+                        <field name="error_message"/>
+                    </group>
+                    <notebook>
+                        <page string="Issues">
+                            <field name="issue_ids" readonly="1">
+                                <list create="0" delete="0">
+                                    <field name="product_id"/>
+                                    <field name="level" widget="badge"
+                                           decoration-warning="level == 'warning'"
+                                           decoration-danger="level == 'error'"
+                                           decoration-muted="level == 'skipped'"/>
+                                    <field name="operation"/>
+                                    <field name="reason"/>
+                                    <field name="code"/>
+                                    <field name="message"/>
+                                    <field name="product_key" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_sync_run_search" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.sync.run.search</field>
+        <field name="model">retailit.beyondid.product.sync.run</field>
+        <field name="arch" type="xml">
+            <search string="Beyond ID Sync History">
+                <field name="name"/>
+                <filter name="done" string="Done" domain="[('state','=','done')]"/>
+                <filter name="warning" string="Warnings" domain="[('state','=','warning')]"/>
+                <filter name="failed" string="Failed" domain="[('state','=','failed')]"/>
+                <filter name="reset" string="Reset" domain="[('execution_type','=','reset')]"/>
+                <separator/>
+                <filter name="group_by_state" string="State" context="{'group_by':'state'}"/>
+                <filter name="group_by_type" string="Execution Type" context="{'group_by':'execution_type'}"/>
+                <filter name="group_by_started" string="Started At" context="{'group_by':'started_at'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="retailit_action_beyondid_product_sync_run" model="ir.actions.act_window">
+        <field name="name">Beyond ID Sync History</field>
+        <field name="res_model">retailit.beyondid.product.sync.run</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="retailit_view_beyondid_product_sync_run_search"/>
+    </record>
+
+    <record id="retailit_view_beyondid_product_sync_issue_list" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.sync.issue.list</field>
+        <field name="model">retailit.beyondid.product.sync.issue</field>
+        <field name="arch" type="xml">
+            <list string="Beyond ID Sync Issues" create="0" delete="0"
+                  default_order="create_date desc"
+                  decoration-warning="level == 'warning'"
+                  decoration-danger="level == 'error'"
+                  decoration-muted="level == 'skipped'">
+                <field name="run_id"/>
+                <field name="product_id"/>
+                <field name="level" widget="badge"
+                       decoration-warning="level == 'warning'"
+                       decoration-danger="level == 'error'"
+                       decoration-muted="level == 'skipped'"/>
+                <field name="operation"/>
+                <field name="reason"/>
+                <field name="code"/>
+                <field name="message"/>
+                <field name="product_key" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_sync_issue_form" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.sync.issue.form</field>
+        <field name="model">retailit.beyondid.product.sync.issue</field>
+        <field name="arch" type="xml">
+            <form string="Beyond ID Sync Issue" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="run_id"/>
+                            <field name="product_id"/>
+                            <field name="level"/>
+                            <field name="operation"/>
+                        </group>
+                        <group>
+                            <field name="reason"/>
+                            <field name="code"/>
+                            <field name="product_key"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="message"/>
+                        <field name="raw_line"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_initial_load_list" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.initial.load.list</field>
+        <field name="model">retailit.beyondid.product.initial.load</field>
+        <field name="arch" type="xml">
+            <list string="Beyond ID Initial Product Loads" default_order="create_date desc"
+                  decoration-success="state == 'done'"
+                  decoration-warning="state == 'warning'"
+                  decoration-danger="state == 'failed'">
+                <field name="name"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state == 'warning'"
+                       decoration-danger="state == 'failed'"
+                       decoration-info="state in ['draft', 'ready', 'running']"/>
+                <field name="batch_size"/>
+                <field name="total_products"/>
+                <field name="total_valid"/>
+                <field name="total_skipped"/>
+                <field name="total_imported"/>
+                <field name="total_failed"/>
+                <field name="total_unconfirmed"/>
+                <field name="total_batches"/>
+                <field name="started_at"/>
+                <field name="finished_at"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_initial_load_form" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.initial.load.form</field>
+        <field name="model">retailit.beyondid.product.initial.load</field>
+        <field name="arch" type="xml">
+            <form string="Beyond ID Initial Product Load">
+                <header>
+                    <button name="action_prepare_load" type="object" string="Prepare Load"
+                            class="btn-secondary" groups="stock.group_stock_manager"
+                            invisible="state != 'draft'"/>
+                    <button name="action_open_progress" type="object" string="Start Initial Load"
+                            class="btn-primary" groups="stock.group_stock_manager"
+                            invisible="state not in ['ready', 'warning', 'failed']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,ready,running,done,warning,failed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_batches" type="object" class="oe_stat_button" icon="fa-list">
+                            <field name="total_batches" widget="statinfo" string="Batches"/>
+                        </button>
+                        <button name="action_view_issues" type="object" class="oe_stat_button"
+                                icon="fa-exclamation-triangle" invisible="issue_count == 0">
+                            <field name="issue_count" widget="statinfo" string="Issues"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" string="Initial Load"/>
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="Control">
+                            <field name="batch_size" readonly="state != 'draft'"/>
+                            <field name="confirm_clean_environment"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group string="Timing">
+                            <field name="started_at"/>
+                            <field name="finished_at"/>
+                            <field name="duration"/>
+                            <field name="api_calls"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Prepared Products">
+                            <field name="total_products"/>
+                            <field name="total_valid"/>
+                            <field name="total_skipped"/>
+                            <field name="total_batches"/>
+                        </group>
+                        <group string="Result">
+                            <field name="current_batch"/>
+                            <field name="total_sent"/>
+                            <field name="total_imported"/>
+                            <field name="total_failed"/>
+                            <field name="total_unconfirmed"/>
+                        </group>
+                    </group>
+                    <group string="Error" invisible="not error_message">
+                        <field name="error_message"/>
+                    </group>
+                    <notebook>
+                        <page string="Batches">
+                            <field name="batch_ids" readonly="1">
+                                <list create="0" delete="0">
+                                    <field name="sequence"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-warning="state == 'warning'"
+                                           decoration-danger="state == 'failed'"
+                                           decoration-info="state in ['pending', 'verifying', 'importing']"/>
+                                    <field name="product_count"/>
+                                    <field name="sent_count"/>
+                                    <field name="imported_count"/>
+                                    <field name="failed_count"/>
+                                    <field name="unconfirmed_count"/>
+                                    <field name="api_calls"/>
+                                    <field name="duration"/>
+                                    <field name="message"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Issues">
+                            <field name="issue_ids" readonly="1">
+                                <list create="0" delete="0">
+                                    <field name="batch_id"/>
+                                    <field name="product_id"/>
+                                    <field name="level" widget="badge"
+                                           decoration-warning="level == 'warning'"
+                                           decoration-danger="level == 'error'"
+                                           decoration-muted="level == 'skipped'"/>
+                                    <field name="reason"/>
+                                    <field name="code"/>
+                                    <field name="message"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_initial_load_search" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.initial.load.search</field>
+        <field name="model">retailit.beyondid.product.initial.load</field>
+        <field name="arch" type="xml">
+            <search string="Beyond ID Initial Product Loads">
+                <field name="name"/>
+                <filter name="ready" string="Ready" domain="[('state','=','ready')]"/>
+                <filter name="running" string="Running" domain="[('state','=','running')]"/>
+                <filter name="done" string="Done" domain="[('state','=','done')]"/>
+                <filter name="warning" string="Done with Issues" domain="[('state','=','warning')]"/>
+                <filter name="failed" string="Failed" domain="[('state','=','failed')]"/>
+                <separator/>
+                <filter name="group_by_state" string="State" context="{'group_by':'state'}"/>
+                <filter name="group_by_started" string="Started At" context="{'group_by':'started_at'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="retailit_action_beyondid_product_initial_load" model="ir.actions.act_window">
+        <field name="name">Initial Product Load</field>
+        <field name="res_model">retailit.beyondid.product.initial.load</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="retailit_view_beyondid_product_initial_load_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create an initial product load</p>
+            <p>Use this only when Beyond ID is clean and Odoo must send the first product catalog.</p>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_initial_load_batch_list" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.initial.load.batch.list</field>
+        <field name="model">retailit.beyondid.product.initial.load.batch</field>
+        <field name="arch" type="xml">
+            <list string="Beyond ID Initial Load Batches" create="0" delete="0"
+                  decoration-success="state == 'done'"
+                  decoration-warning="state == 'warning'"
+                  decoration-danger="state == 'failed'">
+                <field name="load_id"/>
+                <field name="sequence"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'done'"
+                       decoration-warning="state == 'warning'"
+                       decoration-danger="state == 'failed'"
+                       decoration-info="state in ['pending', 'verifying', 'importing']"/>
+                <field name="product_count"/>
+                <field name="sent_count"/>
+                <field name="imported_count"/>
+                <field name="failed_count"/>
+                <field name="unconfirmed_count"/>
+                <field name="api_calls"/>
+                <field name="duration"/>
+                <field name="message"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_initial_load_batch_form" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.initial.load.batch.form</field>
+        <field name="model">retailit.beyondid.product.initial.load.batch</field>
+        <field name="arch" type="xml">
+            <form string="Beyond ID Initial Load Batch" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="load_id"/>
+                            <field name="sequence"/>
+                            <field name="state"/>
+                            <field name="product_count"/>
+                        </group>
+                        <group>
+                            <field name="sent_count"/>
+                            <field name="imported_count"/>
+                            <field name="failed_count"/>
+                            <field name="unconfirmed_count"/>
+                            <field name="api_calls"/>
+                            <field name="duration"/>
+                        </group>
+                    </group>
+                    <group string="Message">
+                        <field name="message"/>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="product_ids" readonly="1"/>
+                        </page>
+                        <page string="Technical">
+                            <field name="verify_response"/>
+                            <field name="import_response"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_initial_load_issue_list" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.initial.load.issue.list</field>
+        <field name="model">retailit.beyondid.product.initial.load.issue</field>
+        <field name="arch" type="xml">
+            <list string="Beyond ID Initial Load Issues" create="0" delete="0"
+                  default_order="create_date desc"
+                  decoration-warning="level == 'warning'"
+                  decoration-danger="level == 'error'"
+                  decoration-muted="level == 'skipped'">
+                <field name="load_id"/>
+                <field name="batch_id"/>
+                <field name="product_id"/>
+                <field name="level" widget="badge"
+                       decoration-warning="level == 'warning'"
+                       decoration-danger="level == 'error'"
+                       decoration-muted="level == 'skipped'"/>
+                <field name="reason"/>
+                <field name="code"/>
+                <field name="message"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="retailit_view_beyondid_product_initial_load_issue_form" model="ir.ui.view">
+        <field name="name">retailit.beyondid.product.initial.load.issue.form</field>
+        <field name="model">retailit.beyondid.product.initial.load.issue</field>
+        <field name="arch" type="xml">
+            <form string="Beyond ID Initial Load Issue" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="load_id"/>
+                            <field name="batch_id"/>
+                            <field name="product_id"/>
+                            <field name="level"/>
+                        </group>
+                        <group>
+                            <field name="reason"/>
+                            <field name="code"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="message"/>
+                        <field name="raw_line"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="retailit_menu_beyondid_stock_root" name="Beyond ID"
+              parent="stock.menu_stock_root" sequence="35" groups="stock.group_stock_user"/>
+    <menuitem id="retailit_menu_beyondid_product_sync" name="Product Sync"
+              parent="retailit_menu_beyondid_stock_root" action="retailit_action_beyondid_product_sync"
+              sequence="10" groups="stock.group_stock_user"/>
+    <menuitem id="retailit_menu_beyondid_product_initial_load" name="Initial Product Load"
+              parent="retailit_menu_beyondid_stock_root" action="retailit_action_beyondid_product_initial_load"
+              sequence="15" groups="stock.group_stock_user"/>
+    <menuitem id="retailit_menu_beyondid_product_full_resync" name="Reset Full Resync"
+              parent="retailit_menu_beyondid_stock_root" action="retailit_action_beyondid_product_full_resync_wizard"
+              sequence="20" groups="stock.group_stock_manager"/>
+</odoo>

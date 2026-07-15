@@ -1,0 +1,48 @@
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) Retail IT. All rights reserved.
+
+This module ("Software") is proprietary software developed by Retail IT
+and is provided solely for use by the specific client to whom it has been
+deployed ("Licensee").
+
+1. GRANT OF LICENSE
+   Retail IT grants Licensee a non-exclusive, non-transferable license to
+   install, use, and run the Software solely within Licensee's own Odoo
+   environment(s), for Licensee's own internal business purposes.
+
+2. RESTRICTIONS
+   Licensee may not, and may not permit any third party to:
+   a) redistribute, sell, lease, license, sublicense, or otherwise make the
+      Software available to any third party;
+   b) copy, modify, adapt, translate, or create derivative works of the
+      Software except to the extent expressly authorized in writing by
+      Retail IT;
+   c) reverse engineer, decompile, or disassemble the Software, except to
+      the extent such restriction is prohibited by applicable law;
+   d) remove or alter any proprietary notices or labels on the Software.
+
+   Any use of the Software beyond the scope of this license, including
+   deployment to any environment or entity other than Licensee, requires
+   the prior written consent of Retail IT.
+
+3. OWNERSHIP
+   The Software is licensed, not sold. Retail IT retains all right, title,
+   and interest in and to the Software, including all intellectual
+   property rights therein. No rights are granted to Licensee other than
+   as expressly set forth in this license.
+
+4. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+   NONINFRINGEMENT. IN NO EVENT SHALL RETAIL IT BE LIABLE FOR ANY CLAIM,
+   DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH
+   THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+5. TERMINATION
+   This license terminates automatically if Licensee fails to comply with
+   any of its terms. Upon termination, Licensee must cease all use of the
+   Software and destroy all copies in its possession.
+
+For licensing inquiries, contact Retail IT.

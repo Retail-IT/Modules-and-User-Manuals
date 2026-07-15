@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+<record id="view_retailit_analytic_website_mapping_list" model="ir.ui.view">
+<field name="name">retailit.analytic.website.mapping.list</field>
+<field name="model">retailit.analytic.website.mapping</field>
+<field name="arch" type="xml">
+<list string="Website Analytic Mapping" editable="bottom">
+<field name="website_id"/>
+<field name="analytic_account_id"/>
+<field name="company_id" optional="hide"/>
+</list>
+</field>
+</record>
+
+<record id="view_retailit_analytic_website_mapping_form" model="ir.ui.view">
+<field name="name">retailit.analytic.website.mapping.form</field>
+<field name="model">retailit.analytic.website.mapping</field>
+<field name="arch" type="xml">
+<form string="Website Analytic Mapping">
+<sheet>
+<group>
+<field name="website_id"/>
+<field name="analytic_account_id" domain="[('company_id', 'in', (False, company_id))]"/>
+<field name="company_id" invisible="1"/>
+<field name="active" invisible="1"/>
+</group>
+</sheet>
+</form>
+</field>
+</record>
+
+<record id="action_retailit_analytic_website_mapping" model="ir.actions.act_window">
+<field name="name">Website Analytic Mapping</field>
+<field name="res_model">retailit.analytic.website.mapping</field>
+<field name="view_mode">list,form</field>
+<field name="help" type="html">
+<p class="o_view_nocontent_smiling_face">
+Map each website to the analytic account that should be applied
+automatically to its Sales Orders and Invoices.
+</p>
+</field>
+</record>
+
+<menuitem
+id="menu_retailit_analytic_website_mapping"
+name="Analytic Accounts"
+action="action_retailit_analytic_website_mapping"
+parent="website_sale.menu_ecommerce_settings"
+sequence="60"
+/>
+
+<record id="ir_actions_server_retailit_sweep_analytic_accounts" model="ir.actions.server">
+<field name="name">Sweep Missing Analytic Accounts</field>
+<field name="model_id" ref="model_retailit_analytic_website_mapping"/>
+<field name="binding_model_id" eval="False"/>
+<field name="state">code</field>
+<field name="code">action = model.action_sweep_missing_analytic_accounts()</field>
+</record>
+
+<menuitem
+id="menu_retailit_analytic_website_mapping_sweep"
+name="Sweep Missing Analytic Accounts"
+action="ir_actions_server_retailit_sweep_analytic_accounts"
+parent="website_sale.menu_ecommerce_settings"
+sequence="61"
+/>
+
+</odoo>

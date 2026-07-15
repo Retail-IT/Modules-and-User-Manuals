@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="retailit_res_config_settings_view_form_inherit_beyondid_product_sync" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.beyondid.product.sync</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="retailit_beyondid_manager.retailit_res_config_settings_view_form_inherit_beyondid_manager"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='retailit_beyondid_manager_setting']/div[hasclass('content-group')]" position="inside">
+                <div class="row mt16">
+                    <div class="col-lg-9 offset-lg-3">
+                        <strong>Product Sync Automation</strong>
+                    </div>
+                </div>
+                <div class="row mt8">
+                    <label for="beyondid_product_auto_sync" class="col-lg-3 o_light_label"/>
+                    <div class="col-lg-9">
+                        <field name="beyondid_product_auto_sync" class="oe_inline"/>
+                        <div class="text-muted mt4">
+                            Odoo automatically sends new products, edited products, and failed retries to Beyond ID. Products already synced with no changes are ignored.
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt8" invisible="not beyondid_product_auto_sync">
+                    <label for="beyondid_product_cron_limit" class="col-lg-3 o_light_label"/>
+                    <div class="col-lg-9">
+                        <field name="beyondid_product_cron_limit" class="oe_inline"/>
+                        <div class="text-muted mt4">
+                            Maximum products Odoo can process each time the automatic sync runs. Odoo sends them to Beyond ID in smaller API batches.
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt8">
+                    <label for="beyondid_product_batch_size" class="col-lg-3 o_light_label"/>
+                    <div class="col-lg-9">
+                        <field name="beyondid_product_batch_size" class="oe_inline"/>
+                        <div class="text-muted mt4">
+                            Maximum products sent in one Beyond ID upload request. Recommended default: 25. Smaller batches reduce timeout risk during manual and automatic sync.
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

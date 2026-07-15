@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="retailit_res_config_settings_view_form_inherit_beyondid_manager" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.retailit.beyondid.manager</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='integration']" position="inside">
+                <setting
+                    id="retailit_beyondid_manager_setting"
+                    string="Beyond ID"
+                    help="Connect Odoo with Beyond ID to synchronize products and import RFID inventory counts."
+                >
+                    <field name="beyondid_enabled"/>
+                    <div class="content-group mt16" invisible="not beyondid_enabled">
+                        <div class="row mt8">
+                            <label for="beyondid_base_url" class="col-lg-3 o_light_label"/>
+                            <field name="beyondid_base_url" class="oe_inline" placeholder="https://beyondid.keonn.com"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="beyondid_username" class="col-lg-3 o_light_label"/>
+                            <field name="beyondid_username" class="oe_inline"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="beyondid_password" class="col-lg-3 o_light_label"/>
+                            <field name="beyondid_password" class="oe_inline" password="True"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="beyondid_oauth_client_id" class="col-lg-3 o_light_label"/>
+                            <field name="beyondid_oauth_client_id" class="oe_inline" placeholder="cloud"/>
+                        </div>
+                        <div class="row mt8">
+                            <label for="beyondid_workspace_token" class="col-lg-3 o_light_label"/>
+                            <field name="beyondid_workspace_token" class="oe_inline"/>
+                        </div>
+                        <div class="row mt16">
+                            <div class="col-lg-9 offset-lg-3">
+                                <button
+                                    name="action_beyondid_test_connection"
+                                    string="Test Connection"
+                                    type="object"
+                                    class="btn btn-primary"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

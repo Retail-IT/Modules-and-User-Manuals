@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Barcode generation settings, shown under General Settings -->
+    <record id="retailit_barcode_generator_res_config_settings_form" model="ir.ui.view">
+        <field name="name">retailit.barcode.generator.res.config.settings.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+        <div id="languages" position="after">
+                <block title="Barcode Generator Configuration" name="retailit_barcode_generator_configuration" groups="retailit_sku_barcode_generator.group_barcode_generator">
+                    <setting>
+                        <field name="generate_barcode_on_product" />
+                    </setting>
+                    <setting>
+                        <field name="sh_barcode_type" />
+                    </setting>
+                </block>
+        </div>
+        </field>
+    </record>
+
+    <!-- SKU (internal reference) generation settings, shown under Inventory Settings -->
+    <record id="retailit_sku_generator_res_config_settings_form" model="ir.ui.view">
+        <field name="name">retailit.sku.generator.res.config.settings.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='warehouse_setting_container']" position="before">
+                <block title="Internal Reference Generation" name="retailit_sku_generation_setting_container">
+
+                    <!-- Padding Field -->
+                    <setting id="retailit_sku_padding_setting" help="Set the number of digits for SKU sequence padding.">
+                        <field name="sku_sequence_padding"/>
+                    </setting>
+
+                </block>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

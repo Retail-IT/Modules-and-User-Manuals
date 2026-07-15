@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Beyond ID Product Sync - User Manual</title>
+    <link rel="stylesheet" href="assets/manual.css">
+</head>
+<body>
+    <div class="manual">
+        <aside class="sidebar">
+            <h1>Beyond ID Product Sync</h1>
+            <p>User manual for configuring, loading and synchronizing Odoo products with Beyond ID.</p>
+            <nav class="toc" aria-label="Table of contents">
+                <a href="#introduction">1. Introduction</a>
+                <a href="#configuration">2. Configuration</a>
+                <a href="#product-data">3. Product Data Sent</a>
+                <a href="#initial-load">4. Initial Product Load</a>
+                <a href="#reset">5. Reset Full Resync</a>
+                <a href="#automatic-sync">6. Automatic Sync</a>
+                <a href="#manual-sync">7. Manual Sync</a>
+                <a href="#product-sync-view">8. Product Sync View</a>
+                <a href="#history">9. Sync History</a>
+                <a href="#states">10. States and Reasons</a>
+                <a href="#archived">11. Archived Products</a>
+                <a href="#best-practices">12. Best Practices</a>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header class="hero">
+                <h2>Beyond ID Product Sync User Manual</h2>
+                <p>
+                    This guide explains the correct operational flow for sending products from Odoo to Beyond ID,
+                    reviewing synchronization status, running the initial load, and handling exceptions.
+                </p>
+                <div class="meta">
+                    <span class="pill">Odoo source of truth</span>
+                    <span class="pill">Product synchronization</span>
+                    <span class="pill">Initial load</span>
+                    <span class="pill">Automatic cron</span>
+                </div>
+            </header>
+
+            <section id="introduction">
+                <h2>1. Introduction</h2>
+                <p class="lead">
+                    Odoo is the main source of product information. Beyond ID receives product data from Odoo
+                    so RFID inventory and product-related processes can use the same product identifiers and barcodes.
+                </p>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Main purpose</h3>
+                        <p>Keep Beyond ID product data aligned with Odoo product variants using a controlled API process.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Operational flow</h3>
+                        <p>Configure the API, run the initial load, use reset only when needed, then rely on automatic or manual sync.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="configuration">
+                <h2>2. Configuration</h2>
+                <p>
+                    Open <code>Settings &gt; Integrations &gt; Beyond ID</code> and configure the API credentials before using any sync process.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/05_settings_beyondid.png" alt="Beyond ID settings in Odoo with annotated connection fields">
+                </div>
+                <p class="caption">The Settings page stores the API credentials, workspace token and product sync automation options.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Enable Beyond ID Integration</code></td>
+                            <td>Activates the API integration. This must be enabled before using Test Connection, Initial Load or Product Sync.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Base URL</code></td>
+                            <td>Beyond ID server URL. Default/example value: <code>https://beyondid.keonn.com</code>.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Username</code> and <code>Password</code></td>
+                            <td>Credentials used to request the OAuth access token.</td>
+                        </tr>
+                        <tr>
+                            <td><code>OAuth Client ID</code></td>
+                            <td>OAuth client identifier. Default value: <code>cloud</code>.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Workspace/App Token</code></td>
+                            <td>Identifies the Beyond ID workspace/app where products and inventory data are handled.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Test Connection</code></td>
+                            <td>Validates credentials and workspace access before running product synchronization.</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="note">
+                    Run <code>Test Connection</code> after changing credentials. A successful test confirms OAuth access and workspace token validation.
+                </div>
+                <div class="example">
+                    <h3>Example configuration</h3>
+                    <p>
+                        Enable the integration, keep <code>Base URL</code> as <code>https://beyondid.keonn.com</code>,
+                        keep <code>OAuth Client ID</code> as <code>cloud</code>, enter the Beyond ID username/password,
+                        and enter the <code>Workspace/App Token</code> provided by Beyond ID.
+                    </p>
+                </div>
+                <div class="note">
+                    The two fields normally left with default values are <code>Base URL</code> and <code>OAuth Client ID</code>.
+                    The customer or Beyond ID administrator must provide the username, password and Workspace/App Token.
+                </div>
+            </section>
+
+            <section id="product-data">
+                <h2>3. Product Data Sent to Beyond ID</h2>
+                <p>
+                    The product sync sends a CSV file to the Beyond ID product import endpoint. The current implementation sends
+                    the minimum stable fields required for SKU-level product synchronization.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Beyond ID field</th>
+                            <th>Odoo source</th>
+                            <th>Rule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>itemtype</code></td>
+                            <td>Fixed value</td>
+                            <td>Always sent as <code>sku</code>.</td>
+                        </tr>
+                        <tr>
+                            <td><code>productid</code></td>
+                            <td><code>product.product.id</code></td>
+                            <td>Uses the Odoo product variant ID as the stable product identifier.</td>
+                        </tr>
+                        <tr>
+                            <td><code>skuid</code></td>
+                            <td><code>product.product.id</code></td>
+                            <td>Uses the Odoo product variant ID because Beyond ID operates at SKU level.</td>
+                        </tr>
+                        <tr>
+                            <td><code>code</code></td>
+                            <td><code>barcode</code></td>
+                            <td>Must contain the product barcode/EAN. It is not the Odoo internal reference.</td>
+                        </tr>
+                        <tr>
+                            <td><code>price</code></td>
+                            <td><code>lst_price</code></td>
+                            <td>Sends the Odoo sales price.</td>
+                        </tr>
+                        <tr>
+                            <td><code>name</code></td>
+                            <td>Product display name</td>
+                            <td>Includes the variant display name when variants exist.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="warning note">
+                    Do not confuse <code>default_code</code> with <code>barcode</code>. Beyond ID field <code>code</code> must be the barcode/EAN.
+                </div>
+                <p>
+                    The Beyond ID documentation also supports optional fields such as <code>currency</code> and image references
+                    like <code>images[0]</code>. Those are not part of the current product sync scope unless explicitly enabled later.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Optional field</th>
+                            <th>Current decision</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>currency</code></td>
+                            <td>Can be added later if Beyond ID needs the currency per product. Current sync sends only the price value.</td>
+                        </tr>
+                        <tr>
+                            <td><code>images[0]</code></td>
+                            <td>Can reference an image URL or image already available to Beyond ID. Binary image upload is not part of this product sync.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="example">
+                    <h3>Example row sent to Beyond ID</h3>
+                    <p>
+                        <code>sku,12345,12345,6001234567890,49.99,Training Shirt / Size M</code>
+                    </p>
+                </div>
+            </section>
+
+            <section id="initial-load">
+                <h2>4. Initial Product Load</h2>
+                <p>
+                    Use <code>Inventory &gt; Beyond ID &gt; Initial Product Load</code> for the first large upload or after Beyond ID product data
+                    has been cleaned and needs to be rebuilt from Odoo.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/02_initial_load_list.png" alt="Initial Product Load list with annotated usage notes">
+                </div>
+                <p class="caption">Initial Product Load creates an auditable batch-based upload process.</p>
+
+                <ol class="steps">
+                    <li>Create a new initial load record.</li>
+                    <li>Use the preparation step to classify valid and excluded products.</li>
+                    <li>Start the load and monitor progress by batch.</li>
+                    <li>Review imported, failed, unconfirmed and quota-related records.</li>
+                    <li>Retry only the products that still need action after correcting the issue.</li>
+                </ol>
+
+                <div class="note">
+                    Initial Load is for large or first-time uploads. Daily product changes should normally be handled by automatic sync.
+                </div>
+                <div class="example">
+                    <h3>Example use case</h3>
+                    <p>
+                        If Beyond ID starts empty, run Initial Product Load once. After that, normal product edits should use automatic sync.
+                    </p>
+                </div>
+            </section>
+
+            <section id="reset">
+                <h2>5. Reset Full Resync</h2>
+                <p>
+                    Use <code>Reset Full Resync</code> when valid products must be marked as pending again. This does not delete products in Beyond ID.
+                </p>
+                <div class="example">
+                    <h3>Why reset is needed</h3>
+                    <p>
+                        If Beyond ID removes or cleans all product data after some time, Odoo may still show products as already synced.
+                        Reset Full Resync clears that sync memory for eligible products and places them back in the queue so they can be sent again.
+                    </p>
+                </div>
+                <div class="shot">
+                    <img src="assets/screenshots/04_reset_full_resync.png" alt="Reset Full Resync wizard with eligible and excluded products">
+                </div>
+                <p class="caption">The reset wizard separates eligible products from excluded products before marking records pending.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Area</th>
+                            <th>Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Eligible Products</td>
+                            <td>Products that have required data and can be resent to Beyond ID.</td>
+                        </tr>
+                        <tr>
+                            <td>Missing Barcode</td>
+                            <td>Products excluded because <code>barcode</code> is empty.</td>
+                        </tr>
+                        <tr>
+                            <td>Duplicate Barcode</td>
+                            <td>Products excluded because another active product uses the same barcode.</td>
+                        </tr>
+                        <tr>
+                            <td>Missing Name</td>
+                            <td>Products excluded because the display name is missing.</td>
+                        </tr>
+                        <tr>
+                            <td>Archived Products</td>
+                            <td>Products excluded because archived products are intentionally ignored.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="automatic-sync">
+                <h2>6. Automatic Sync</h2>
+                <p>
+                    Automatic sync is controlled by the Odoo scheduled action <code>Beyond ID: Automatic Product Sync</code>.
+                    It processes products that need updates and are valid for sync.
+                </p>
+                <div class="flow" aria-label="Automatic sync flow">
+                    <span>Product changes in Odoo</span>
+                    <span>Odoo marks it Pending</span>
+                    <span>Cron sends valid products</span>
+                    <span>Beyond ID confirms the update</span>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Setting</th>
+                            <th>Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Enable Automatic Product Sync</code></td>
+                            <td>When enabled, Odoo automatically sends products that need updates. When disabled, products can still become Pending, but the cron will not send them.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Products per Automatic Sync</code></td>
+                            <td>Maximum products Odoo can process in one cron execution. Example: if this is <code>500</code>, one cron run processes up to 500 pending products.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Max Products per API Request</code></td>
+                            <td>Maximum products sent in one Beyond ID upload request. Example: if this is <code>25</code>, 500 products are sent as 20 API requests.</td>
+                        </tr>
+                        <tr>
+                            <td>Scheduled action interval</td>
+                            <td>Can be adjusted in <code>Settings &gt; Technical &gt; Automation &gt; Scheduled Actions</code>.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="warning note">
+                    For tests, the scheduled action can run every 1 minute. For production, a longer interval is safer to avoid unnecessary API load.
+                </div>
+                <div class="example">
+                    <h3>Example</h3>
+                    <p>
+                        A user changes a product price from 49.99 to 59.99. Odoo marks the product as <code>Pending</code>.
+                        The next cron run sends it to Beyond ID and the product becomes <code>Synced</code>.
+                    </p>
+                </div>
+                <div class="example">
+                    <h3>Automation example</h3>
+                    <p>
+                        <code>Enable Automatic Product Sync</code> is enabled, <code>Products per Automatic Sync</code> is <code>500</code>,
+                        and <code>Max Products per API Request</code> is <code>25</code>. If 120 products are pending, Odoo processes all 120
+                        in the next cron run and sends them to Beyond ID in 5 smaller API requests.
+                    </p>
+                </div>
+                <div class="note">
+                    If automatic sync is disabled, the Product Sync view will still show changed products as <code>Pending</code>.
+                    They will wait there until automatic sync is enabled again or the user runs <code>Sync Selected</code>.
+                </div>
+            </section>
+
+            <section id="manual-sync">
+                <h2>7. Manual Sync</h2>
+                <p>
+                    Use manual sync from <code>Inventory &gt; Beyond ID &gt; Product Sync</code> when selected products need to be sent immediately.
+                </p>
+                <ol class="steps">
+                    <li>Open the Product Sync list.</li>
+                    <li>Select the products to synchronize.</li>
+                    <li>Click <code>Sync Selected</code>.</li>
+                    <li>Monitor the progress page until completion.</li>
+                    <li>Review Sync History if warnings or failures are reported.</li>
+                </ol>
+                <div class="note">
+                    Manual sync is intended for focused corrections or validation. Large recurring updates should use the automatic sync or Initial Load.
+                </div>
+            </section>
+
+            <section id="product-sync-view">
+                <h2>8. Product Sync View</h2>
+                <p>
+                    Product Sync is the main operational view for reviewing synchronization status and resolving product data issues.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/01_product_sync_overview.png" alt="Product Sync list with annotated status sidebar and columns">
+                </div>
+                <p class="caption">The left panel uses Sync Status. Issue Reason remains available as a column and targeted filters.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Product</td>
+                            <td>Odoo product variant display name.</td>
+                        </tr>
+                        <tr>
+                            <td>Barcode</td>
+                            <td>Barcode/EAN sent as Beyond ID <code>code</code>.</td>
+                        </tr>
+                        <tr>
+                            <td>Sales Price</td>
+                            <td>Price sent to Beyond ID.</td>
+                        </tr>
+                        <tr>
+                            <td>Sync Status</td>
+                            <td>Current lifecycle status of the sync record.</td>
+                        </tr>
+                        <tr>
+                            <td>Issue Reason</td>
+                            <td>Specific reason when the product cannot be sent or failed.</td>
+                        </tr>
+                        <tr>
+                            <td>Last Sync</td>
+                            <td>Date/time of the last successful synchronization.</td>
+                        </tr>
+                        <tr>
+                            <td>Last Error</td>
+                            <td>Most recent error returned by Odoo or Beyond ID.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="example">
+                    <h3>How Odoo detects modified products</h3>
+                    <p>
+                        After a successful sync, Odoo stores a payload hash. When barcode, name, variant display data or sales price changes,
+                        Odoo recalculates the payload. If the payload changed, the product is placed back in the synchronization queue.
+                    </p>
+                </div>
+                <div class="example">
+                    <h3>Hash example</h3>
+                    <p>
+                        Product A is sent with barcode <code>6001234567890</code>, price <code>49.99</code> and name
+                        <code>Training Shirt / Size M</code>. Odoo stores a hash for that exact data, for example
+                        <code>8f3a9c21</code>. If the price changes to <code>59.99</code>, Odoo calculates a different hash,
+                        for example <code>c41b77e2</code>. Because the hash changed, Odoo marks the product as
+                        <code>Pending</code> and sends it again. If nothing changes, the hash remains <code>8f3a9c21</code>
+                        and Odoo does not resend the product.
+                    </p>
+                </div>
+            </section>
+
+            <section id="history">
+                <h2>9. Sync History</h2>
+                <p>
+                    Sync History stores each synchronization execution and provides an audit trail for manual sync, automatic sync, reset and initial load activity.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/03_sync_history.png" alt="Beyond ID Sync History list with annotated execution data">
+                </div>
+                <p class="caption">Use Sync History to review execution type, status, duration, API calls and issue counts.</p>
+            </section>
+
+            <section id="states">
+                <h2>10. States and Reasons</h2>
+                <p>
+                    The state tells where the product is in the synchronization lifecycle. The reason explains why a product cannot be sent or why it failed.
+                </p>
+
+                <div class="status-list">
+                    <div class="status"><strong>Pending</strong><small>Ready or needing to be sent to Beyond ID.</small></div>
+                    <div class="status"><strong>Processing</strong><small>Currently being handled by a sync operation.</small></div>
+                    <div class="status"><strong>Synced</strong><small>Successfully confirmed by Beyond ID.</small></div>
+                    <div class="status"><strong>Warning</strong><small>Accepted with a warning or non-blocking issue.</small></div>
+                    <div class="status"><strong>Failed</strong><small>API, connection or validation failure that requires review.</small></div>
+                    <div class="status"><strong>Skipped</strong><small>Not sent because required local data is missing or invalid.</small></div>
+                </div>
+                <div class="example">
+                    <h3>Common examples</h3>
+                    <p>
+                        Product with a new price: <code>Pending</code>. Product without barcode: <code>Skipped / Missing Barcode</code>.
+                        Product sent correctly: <code>Synced</code>.
+                    </p>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reason</th>
+                            <th>Meaning</th>
+                            <th>Typical action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Missing Barcode</code></td>
+                            <td>The product has no barcode and cannot be sent.</td>
+                            <td>Add the barcode in Odoo.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Duplicate Barcode</code></td>
+                            <td>Another active product uses the same barcode.</td>
+                            <td>Correct the duplicate barcode before syncing.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Missing Name</code></td>
+                            <td>The product name is missing.</td>
+                            <td>Correct the product name.</td>
+                        </tr>
+                        <tr>
+                            <td><code>API Error</code></td>
+                            <td>Beyond ID rejected the request or did not respond correctly.</td>
+                            <td>Check Sync History and retry after the issue is resolved.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Validation Error</code></td>
+                            <td>The product failed a non-retryable validation rule.</td>
+                            <td>Correct the data, then sync again.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="archived">
+                <h2>11. Archived Products</h2>
+                <p>
+                    Archived Odoo products are intentionally ignored by the Beyond ID product sync process.
+                </p>
+                <ul>
+                    <li>Archived products do not appear in the Product Sync view.</li>
+                    <li>Archived products are not selected by the automatic cron.</li>
+                    <li>Archived products are not sent by manual sync.</li>
+                    <li>Archiving a product in Odoo does not delete it in Beyond ID.</li>
+                </ul>
+                <div class="warning note">
+                    If a product was already sent to Beyond ID and later archived in Odoo, it may remain as orphaned product data in Beyond ID.
+                    A controlled cleanup process can be added in a future version.
+                </div>
+            </section>
+
+            <section id="best-practices">
+                <h2>12. Best Practices</h2>
+                <ol class="steps">
+                    <li>Keep product barcodes unique and complete before syncing.</li>
+                    <li>Use Initial Load for the first large upload or after cleaning Beyond ID data.</li>
+                    <li>Use Reset Full Resync only when products must be resent from Odoo.</li>
+                    <li>Use automatic sync for normal daily updates.</li>
+                    <li>Use manual sync only for selected product corrections or immediate validation.</li>
+                    <li>Review Sync History after failures, warnings or large runs.</li>
+                    <li>Do not use product archiving as a Beyond ID delete operation.</li>
+                </ol>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
