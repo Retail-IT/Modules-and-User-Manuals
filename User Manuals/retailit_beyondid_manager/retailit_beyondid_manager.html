@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Retail IT - Beyond ID Manager - User Manual</title>
+    <link rel="stylesheet" href="assets/manual.css">
+    <script src="assets/captions.js" defer></script>
+</head>
+<body>
+    <div class="manual">
+        <aside class="sidebar">
+            <img class="logo" src="assets/logo/RIT_Logo_White.png" alt="Retail IT Group logo">
+            <h1>Beyond ID Manager</h1>
+            <p>User manual for the Beyond ID OAuth credential and connection layer.</p>
+            <nav class="toc" aria-label="Table of contents">
+                <a href="#introduction">1. Introduction</a>
+                <a href="#configuration">2. Configuration</a>
+                <a href="#how-it-works">3. How It Works</a>
+                <a href="#testing-connection">4. Testing the Connection</a>
+                <a href="#edge-cases">5. Edge Cases &amp; Troubleshooting</a>
+                <a href="#best-practices">6. Best Practices</a>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header class="hero">
+                <h2>Retail IT - Beyond ID Manager User Manual</h2>
+                <p>
+                    This module stores the Beyond ID / AdvanCloud API credentials and handles OAuth
+                    authentication on behalf of Odoo. It does not move any data itself — it is a
+                    configuration and connection layer that other Retail IT modules (RFID inventory
+                    imports, stock synchronisation, etc.) build on top of.
+                </p>
+                <div class="meta">
+                    <span class="pill">Configuration-only</span>
+                    <span class="pill">OAuth Integration</span>
+                    <span class="pill">Beyond ID / AdvanCloud</span>
+                </div>
+            </header>
+
+            <section id="introduction">
+                <h2>1. Introduction</h2>
+                <p class="lead">
+                    Beyond ID Manager gives Odoo a single, shared place to store the credentials
+                    needed to talk to Beyond ID (Keonn's AdvanCloud RFID platform), and to obtain
+                    and cache the OAuth access token that every Beyond ID API call requires. It adds
+                    one panel to Odoo's General Settings screen and does not create any new menus,
+                    records, or lists of its own.
+                </p>
+                <div class="grid">
+                    <div class="card">
+                        <h3>Main purpose</h3>
+                        <p>
+                            Provide a single, centrally-managed set of Beyond ID credentials
+                            (base URL, username, password, OAuth Client ID, Workspace/App Token)
+                            and expose a "Test Connection" button so staff can confirm those
+                            credentials work without leaving Odoo.
+                        </p>
+                    </div>
+                    <div class="card">
+                        <h3>Operational flow</h3>
+                        <p>
+                            An admin enters the Beyond ID credentials once in General Settings and
+                            saves them. From that point on, any Retail IT module that needs to call
+                            Beyond ID (for example, to list shops or download an RFID stock count)
+                            asks this module for an access token instead of authenticating itself.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="configuration">
+                <h2>2. Configuration</h2>
+                <p>
+                    Open <code>Settings → General Settings</code> and scroll to the
+                    <strong>Integrations</strong> block, where a <strong>Beyond ID</strong> panel
+                    appears. Toggle <strong>Enable Beyond ID Integration</strong> on to reveal the
+                    credential fields.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/01_settings.png" alt="Beyond ID panel in Odoo General Settings, showing the enable toggle and credential fields">
+                </div>
+                <p class="caption"></p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Enable Beyond ID Integration</code></td>
+                            <td>Master switch. All other fields are hidden until this is turned on.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Base URL</code></td>
+                            <td>
+                                Root domain for the Beyond ID / AdvanCloud API, e.g.
+                                <code>https://beyondid.keonn.com</code>. Defaults to that address; a
+                                trailing slash is stripped automatically before use.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Username</code></td>
+                            <td>Beyond ID account username used for the OAuth password grant.</td>
+                        </tr>
+                        <tr>
+                            <td><code>Password</code></td>
+                            <td>Beyond ID account password, stored masked in the UI.</td>
+                        </tr>
+                        <tr>
+                            <td><code>OAuth Client ID</code></td>
+                            <td>
+                                The AdvanCloud OAuth client identifier. Beyond ID's own documentation
+                                uses <code>cloud</code>, which is pre-filled as the default.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>Workspace/App Token</code></td>
+                            <td>
+                                Technical workspace/app code required by shop, inventory and stock
+                                endpoints. Not required for OAuth login itself, but required before
+                                any inventory-related API call can succeed.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="note">
+                    All five fields are stored as system parameters
+                    (<code>retailit_beyondid_manager.*</code>) rather than on a dedicated record, so
+                    there is exactly one Beyond ID credential set per Odoo database — it is not
+                    possible to configure multiple Beyond ID accounts side by side in this module.
+                </div>
+                <div class="example">
+                    <h3>Example configuration</h3>
+                    <p>
+                        Base URL <code>https://beyondid.keonn.com</code>, Username
+                        <code>wilder</code>, OAuth Client ID <code>cloud</code>, Workspace/App Token
+                        <code>house_of_gol</code>. After saving, click <strong>Test Connection</strong>
+                        to confirm the credentials and workspace token are both valid before any other
+                        module relies on them.
+                    </p>
+                </div>
+            </section>
+
+            <section id="how-it-works">
+                <h2>3. How It Works</h2>
+                <p>
+                    Beyond ID uses OAuth 2.0's password grant. This module exchanges the stored
+                    username and password for a short-lived access token, then caches that token so
+                    repeated API calls don't re-authenticate every time.
+                </p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Field / Data</th>
+                            <th>Source</th>
+                            <th>Rule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>access_token</code></td>
+                            <td><code>POST /advancloud/oauth/token</code></td>
+                            <td>
+                                Requested with <code>grant_type=password</code> plus the saved
+                                username, password and OAuth Client ID. Cached as a system parameter
+                                once received.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Token cache lifetime</td>
+                            <td>
+                                <code>expires_in</code> from the OAuth response
+                            </td>
+                            <td>
+                                The token is reused for subsequent calls until 30 seconds before its
+                                reported expiry (a safety buffer). Tokens that report 30 seconds or
+                                less of validity are not cached at all, and a fresh token is requested
+                                on every call instead.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Token cache invalidation</td>
+                            <td>Saving General Settings</td>
+                            <td>
+                                Any time the Beyond ID settings panel is saved, the cached access
+                                token is cleared, so the next API call always re-authenticates with
+                                whatever credentials were just saved.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Workspace verification</td>
+                            <td><code>POST /advancloud/import/stock/status</code></td>
+                            <td>
+                                Called with the Workspace/App Token and a valid access token. A
+                                <code>result</code> of <code>OK</code> confirms the token is accepted;
+                                anything else is treated as a rejected workspace token.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="note">
+                    Beyond the settings panel, this module also exposes shop, inventory-search,
+                    inventory-download and stock-download API methods that other Retail IT modules
+                    call directly (they are not driven from any screen in this module). Those methods
+                    all reuse the same cached access token and will raise a clear error if the
+                    Workspace/App Token has not been configured.
+                </div>
+            </section>
+
+            <section id="testing-connection">
+                <h2>4. Testing the Connection</h2>
+                <p>
+                    The <strong>Test Connection</strong> button on the Beyond ID settings panel is
+                    the primary way to confirm a credential set works before relying on it elsewhere.
+                </p>
+                <div class="shot">
+                    <img src="assets/screenshots/02_test_connection.png" alt="Test Connection button and the resulting success notification on the Beyond ID settings panel">
+                </div>
+                <p class="caption"></p>
+                <ol class="steps">
+                    <li>Fill in Base URL, Username, Password and OAuth Client ID (and Workspace/App Token if it's available), then save the settings form.</li>
+                    <li>Click <strong>Test Connection</strong>. This always tests the last <em>saved</em> configuration, not whatever is currently typed into the form.</li>
+                    <li>The module requests a fresh access token (bypassing any cached token) to confirm the username, password and OAuth Client ID are correct.</li>
+                    <li>If a Workspace/App Token is saved, it is also verified against the shop status endpoint in the same test.</li>
+                    <li>A green notification confirms success and states whether the workspace token was checked; a warning or error notification explains what failed.</li>
+                </ol>
+            </section>
+
+            <section id="edge-cases">
+                <h2>5. Edge Cases &amp; Troubleshooting</h2>
+                <div class="warning note">
+                    <strong>Unsaved changes:</strong> clicking Test Connection while the form has
+                    edits that haven't been saved yet returns a warning asking to save first — it
+                    never tests values that are only sitting in the form.
+                </div>
+                <p>The table below covers the errors this module can surface, and what they mean.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Situation</th>
+                            <th>What happens</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Required field missing</td>
+                            <td>
+                                Base URL, Username, Password or OAuth Client ID left blank raises a
+                                clear error naming exactly which field(s) are missing, before any API
+                                call is attempted.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>HTTP 401 / 403 from Beyond ID</td>
+                            <td>
+                                Treated as an authorization failure — almost always wrong username,
+                                password, or OAuth Client ID. Beyond ID's own error message and status
+                                code are included in the notification.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>HTTP 408 / 429 / 500 / 502 / 503 / 504</td>
+                            <td>
+                                Treated as a temporary problem on Beyond ID's side (timeout, rate
+                                limiting, or a server error). Retrying later usually resolves it.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Connection timeout / network unreachable</td>
+                            <td>
+                                Reported as a connection failure asking to verify the Base URL and
+                                that Odoo's server can reach the internet — this points at network or
+                                firewall issues rather than credentials.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>No access token in the OAuth response</td>
+                            <td>
+                                Beyond ID returned HTTP 200 but no <code>access_token</code> — treated
+                                as invalid credentials even though no error status was returned.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Workspace/App Token rejected</td>
+                            <td>
+                                OAuth succeeds but the shop status check returns anything other than
+                                <code>OK</code>. Reported separately from an authentication failure, so
+                                it's clear the credentials are fine and only the workspace token is
+                                wrong.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Non-JSON or malformed response body</td>
+                            <td>
+                                Reported as a connection failure with an invalid-response message,
+                                rather than a raw parsing error.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="best-practices">
+                <h2>6. Best Practices</h2>
+                <ol class="steps">
+                    <li>Treat the Beyond ID password and Workspace/App Token as sensitive credentials — only share them with staff who are configuring the integration, not with general Odoo users.</li>
+                    <li>Always run Test Connection immediately after saving new or changed credentials, rather than assuming they're correct and finding out later from a failing import.</li>
+                    <li>If a workspace token changes on the Beyond ID side (e.g. re-issued by Keonn), update it here first and re-test before touching any module that depends on it.</li>
+                    <li>Because there is only one credential set per database, don't reuse a production Beyond ID account for testing in a staging database — use separate Beyond ID accounts to avoid cross-environment interference.</li>
+                    <li>When troubleshooting a failing import in another module, check this settings panel first: a rejected workspace token or expired credentials here is the most common root cause of downstream Beyond ID errors.</li>
+                </ol>
+            </section>
+        </main>
+    </div>
+
+    <div class="lightbox-overlay" id="lightbox">
+        <button class="lightbox-close" aria-label="Close">&times;</button>
+        <img id="lightbox-img" src="" alt="">
+    </div>
+
+    <script>
+        (function () {
+            const overlay = document.getElementById('lightbox');
+            const overlayImg = document.getElementById('lightbox-img');
+            document.querySelectorAll('.shot img').forEach(function (img) {
+                img.addEventListener('click', function () {
+                    overlayImg.src = img.src;
+                    overlayImg.alt = img.alt;
+                    overlay.classList.add('open');
+                });
+            });
+            overlay.addEventListener('click', function () {
+                overlay.classList.remove('open');
+                overlayImg.src = '';
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    overlay.classList.remove('open');
+                    overlayImg.src = '';
+                }
+            });
+
+            // Auto-fill captions from assets/captions.js
+            if (typeof MANUAL_CAPTIONS !== 'undefined') {
+                document.querySelectorAll('.shot').forEach(function (shot) {
+                    const img = shot.querySelector('img');
+                    const captionEl = shot.nextElementSibling;
+                    if (!img || !captionEl || !captionEl.classList.contains('caption')) return;
+                    const filename = img.getAttribute('src').split('/').pop();
+                    const text = MANUAL_CAPTIONS[filename];
+                    captionEl.textContent = text || '';
+                    captionEl.style.display = text ? '' : 'none';
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
